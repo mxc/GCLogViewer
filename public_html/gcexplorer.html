@@ -32,7 +32,7 @@ and open the template in the editor.
                             }
                         }];
 
-                    db = new DataStore(createIndexDBConnection("GCViewer",2, schema));
+                    db = getDataStoreObject("GCViewer", 2, schema);
                 }
             }
 
@@ -57,21 +57,22 @@ and open the template in the editor.
                 reader.readAsText(file);
                 return false;
             }
-            
-            function dropDataStore(){
+
+            function dropDataStore() {
                 db.dropDataStore();
             }
-            
-            function createDataStore(){
+
+            function createDataStore() {
                 db.createDataStore();
             }
-            
-            function drawGraph(){
-                db.getObjectArray('gcEntry',function(array){
+
+            function drawGraph() {
+                db.processObjectArray('gcEntry', function (array) {
                     console.log("drawing data point");
-                    array.forEach(function(value,index,array){
+                    array.forEach(function (value, index, array) {
                         var li = document.createElement("li");
-                        li.appendChild(document.createTextNode(value.totalHeap));
+                        var str = value.timeStamp+" "+value.totalHeap;
+                        li.appendChild(document.createTextNode(str));
                         var ul = document.getElementById("list");
                         ul.appendChild(li);
                     })
@@ -87,6 +88,13 @@ and open the template in the editor.
             <input type="button" value="Create Datastore" onclick="return createDataStore()" />
             <input type="button" value="Draw Graph" onclick="return drawGraph()" />
         </form>
-        <ul id="list"></ul>
+        <div style="width:100px; float:left;">
+             <ul id="list"></ul>
+        </div>
+        <div>
+        <svg id="svg">
+        </svg>
+        </div>
+
     </body>
 </html>
