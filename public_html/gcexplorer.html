@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/db.js"></script>
+        <script src="js/gcexplorer.js"></script>
+        <script>
+            //setup our db schema
+            db = null;
+            document.onreadystatechange = function () {
+                if (document.readyState === 'complete') {
+                    var schema = [{
+                            gcEntry: {
+                                params: {
+                                    autoIncrement: true
+                                },
+                            }
+                        },
+                        {
+                            gcEntry: {
+                                indices: [
+                                    ['timestamp', 'timeStamp', {unique: false}],
+                                    ['dateStamp', 'dateStamp', {unique: false}]
+                                ]
+                            }
+                        }];
+
+                    db = new DataStore(createIndexDBConnection("GCViewer",2, schema));
+                }
+            }
+
+            function processFile() {
+                var file = document.getElementById("file").files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var objs = [];
+                    var lines = reader.result.split(/\r\n|\r|\n/g);
+                    lines.forEach(function (value, index, array) {
+                        var obj = parseLogEntry(value);
+                        if (obj !== undefined) {
+                            objs.push(obj);
+                        }
+                    });
+                    var objStore = db.getObjectStoreFromTransaction("gcEntry", "readwrite");
+                    db.insertObjectArray(objStore, objs);
+                };
+                reader.onerror = function (e) {
+                    document.body.appendChild(document.createTextNode(reader.error));
+                };
+                reader.readAsText(file);
+                return false;
+            }
+            
+            function dropDataStore(){
+                db.dropDataStore();
+            }
+            
+            function createDataStore(){
+                db.createDataStore();
+            }
+            
+            function drawGraph(){
+                db.getObjectArray('gcEntry',function(array){
+                    console.log("drawing data point");
+                    array.forEach(function(value,index,array){
+                        var li = document.createElement("li");
+                        li.appendChild(document.createTextNode(value.totalHeap));
+                        var ul = document.getElementById("list");
+                        ul.appendChild(li);
+                    })
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <form>
+            <input type="file" id="file">
+            <input type="submit" value="Submit" onclick="return processFile();">
+            <input type="button" value="Drop Datastore" onclick="return dropDataStore()" />
+            <input type="button" value="Create Datastore" onclick="return createDataStore()" />
+            <input type="button" value="Draw Graph" onclick="return drawGraph()" />
+        </form>
+        <ul id="list"></ul>
+    </body>
+</html>
