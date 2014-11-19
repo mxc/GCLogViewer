@@ -20,12 +20,11 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="js/db.js"></script>
-        <script src="js/worker.js"></script>
         <script src="js/gcEvent.js"></script>
         <script src="js/gcViewerDB.js"></script>
         <script src="js/chart.js"></script>
         <script>
-            var db=new GCViewerDB();
+            var db = new GCViewerDB();
             document.onreadystatechange = function () {
                 if (document.readyState === 'complete') {
                     db.initDb();
@@ -52,6 +51,17 @@
                 reader.readAsText(file);
                 return false;
             }
+
+            function drawGraph() {
+                db.getDataPoints(function (array) {
+                    var worker = new Worker('js/worker.js');
+                    worker.addEventListener('message', function (e) {
+                        console.log(e.data);
+                    });
+                    worker.postMessage(array);
+                });
+            };
+
         </script>
     </head>
     <body>
@@ -61,7 +71,7 @@
             <input type="button" value="Drop Datastore" onclick="return db.dropDataStore()" />
             <input type="button" value="Create Datastore" onclick="return db.createDataStore()" />
             <input type="button" value="Find Max" onclick="return db.findMax()" />
-            <input type="button" value="Draw Graph" onclick="return db.drawGraph()" />
+            <input type="button" value="Draw Graph" onclick="return drawGraph()" />
         </form>
         <div style="width:100px; float:left;">
             <ul id="list"></ul>

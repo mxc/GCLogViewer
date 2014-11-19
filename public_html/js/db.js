@@ -45,7 +45,11 @@ function getDataStoreObject(dbName, version, schema) {
             dbName: dbName,
             version: version,
             init: function () {
-                var request = window.indexedDB.open(dbName, version);
+                try {
+                    var request = window.indexedDB.open(dbName, version);
+                } catch (e) {
+                    request = indexedDB.open(dbName, version);
+                }
                 request.onsuccess = function (e) {
                     db = request.result;
                     console.log("datastore already uptodate");
@@ -112,8 +116,10 @@ function getDataStoreObject(dbName, version, schema) {
                     return this.getObjectStoreFromTransaction(cursorProvider, "readonly",
                             function (event) {
                                 console.log("worked");
-                            }, function(event){ console.log(event.message)});
-                }else{
+                            }, function (event) {
+                        console.log(event.message)
+                    });
+                } else {
                     return cursorProvider;
                 }
             }
@@ -205,35 +211,21 @@ DataStore.prototype.insertObject = function (objStore, obj) {
  *  
  *  @param onEachFunc is the functions to call on each item in the collection
  *     
- *  @param resultObj is an object with a property "result" which will hold the result
- *  of the onEachFunc called for each object and have a property "callback" which
- *  holds the function to call once the entire collection has been iterated over.
- *  This callback has takes one parameter, the array itself.
- *  
- *  resultObj = {
- *                  result:0,
- *                  callback: function(array){....}
- *              }
- *              
- *  One can get the whole array back by passing in a resultObj as follows:
- *  
- *  resultObj = {
- *                  result:0,
- *                  callback: function(array){this.result=array}
- *              }
+ *  @param callback takes two parameters the return value of the onEachFun and
+ *  the array of objects iterated over
  *              
  */
-DataStore.prototype.processObjectArray = function (cursorProvider, oneEachFunc,resultObj) {
-    var results = [];
+DataStore.prototype.processObjectArray = function (cursorProvider, onEachFunc, callback) {
+    var array = [];
     var onSuccess = function (event) {
         console.log("opening cursor");
         var cursor = event.target.result;
         if (cursor) {
-            results.push(cursor.value);
+            array.push(cursor.value);
             cursor.continue();
         } else {
-            resultObj.result = oneEachFunc(results);
-            resultObj.callback(results);
+            var result = onEachFunc(array);
+            callback(result, array);
         }
     };
     var onError = function (e) {
@@ -246,6 +238,18 @@ DataStore.prototype.processObjectArray = function (cursorProvider, oneEachFunc,r
 };
 
 /**
+ * 
+ * @param {type} objStore
+ * @param {type} callback
+ * @returns {undefined}
+ */
+DataStore.prototype.getObjectArray = function (objStore, callback) {
+    cursorProvider = this.dbCon.convertToObjectStore(objStore);
+    this.processObjectArray(cursorProvider, function () {
+    }, function(result,array){ callback(array); });
+};
+
+/**
  *  Iterate over the items in an object store and execute the callback in resultObj
  *  for each item. This does not require the whole object store to be loaded into an
  *  array and therefore into memroy. It iterates over each object and then discards it
@@ -253,7 +257,8 @@ DataStore.prototype.processObjectArray = function (cursorProvider, oneEachFunc,r
  *  @param cursorProvider is either a string for the object store name or an actual
  *  object store object. 
  *  
- *  @param onEachFunc is the functions to call on each item in the collection
+ *  @param onEachFunc is the functions to call on each item in the collection.
+ *  Interim results can be stored in the resultObj object between function calls.
  *     
  *  @param resultObj is an object with a property "result" which will hold the result
  *  of the onEachFunc called for each object and have a property "callback" which
@@ -262,8 +267,11 @@ DataStore.prototype.processObjectArray = function (cursorProvider, oneEachFunc,r
  *                  result:0,
  *                  callback: function(){....}
  *              }
+ *  This allows values to be passed downt o subsequent invocations of the onEachFunc
+ *  function
+ *  
  */
-DataStore.prototype.processObjects = function (cursorProvider, onEachFunc,resultObj) {
+DataStore.prototype.processObjects = function (cursorProvider, onEachFunc, resultObj) {
     cursorProvider = this.dbCon.convertToObjectStore(cursorProvider);
     var request = cursorProvider.openCursor();
     request.onsuccess = function (event) {
@@ -271,11 +279,11 @@ DataStore.prototype.processObjects = function (cursorProvider, onEachFunc,result
         if (cursor) {
             onEachFunc(cursor.value);
             cursor.continue();
-        }else{
+        } else {
             resultObj.callback();
         }
     };
-    request.onerror=function(e){
+    request.onerror = function (e) {
         console.log(e.message);
     };
 };
@@ -283,38 +291,38 @@ DataStore.prototype.processObjects = function (cursorProvider, onEachFunc,result
 /*
  * Wrapper around processObjects to find the max value of a property
  */
-DataStore.prototype.findMax = function (objStore, property,resultObj) {
-    var tmpResult={};
-    tmpResult[property]=0;
-    var func = function(event){
-        tmpResult = event[property]>tmpResult[property]? event:tmpResult;
-        resultObj.result=tmpResult;
+DataStore.prototype.findMax = function (objStore, property, resultObj) {
+    var tmpResult = {};
+    tmpResult[property] = 0;
+    var func = function (event) {
+        tmpResult = event[property] > tmpResult[property] ? event : tmpResult;
+        resultObj.result = tmpResult;
     };
-    this.processObjects(objStore,func,resultObj);
+    this.processObjects(objStore, func, resultObj);
 };
 
 
 /*
  * Wrapper around processObjects to find the max value of a property
  */
-DataStore.prototype.findMin = function (objStore, property,resultObj) {
-    var tmpResult={};
-    tmpResult[property]=999999999999999999;
-    var func = function(event){
-        tmpResult = event[property]<tmpResult[property]? event:tmpResult;
-        resultObj.result=tmpResult;
+DataStore.prototype.findMin = function (objStore, property, resultObj) {
+    var tmpResult = {};
+    tmpResult[property] = 999999999999999999;
+    var func = function (event) {
+        tmpResult = event[property] < tmpResult[property] ? event : tmpResult;
+        resultObj.result = tmpResult;
     };
-    this.processObjects(objStore,func,resultObj);
+    this.processObjects(objStore, func, resultObj);
 };
 
-DataStore.prototype.sum=function(objStore,property,resultObj){
-    var tmpResult={};
-    tmpResult[property]=0;
-    var func = function(event){
-        tmpResult.result = event[property]+tmpResult[property];
-        resultObj.result=tmpResult;
+DataStore.prototype.sum = function (objStore, property, resultObj) {
+    var tmpResult = {};
+    tmpResult[property] = 0;
+    var func = function (event) {
+        tmpResult.result = event[property] + tmpResult[property];
+        resultObj.result = tmpResult;
     };
-    this.processObjects(objStore,func,resultObj);
+    this.processObjects(objStore, func, resultObj);
 };
 
 

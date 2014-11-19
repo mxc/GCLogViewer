@@ -25,7 +25,7 @@ GCViewerDB.prototype.initDb = function () {
             gcEntry: {
                 params: {
                     autoIncrement: true
-                },
+                }
             }
         },
         {
@@ -53,23 +53,15 @@ GCViewerDB.prototype.createDataStore = function () {
     this.db.createDataStore();
 };
 
-GCViewerDB.prototype.findMax = function () {
-    this.db.findMax('gcEntry', 'timeStamp', {result: 0, callback: function () {
-            alert(this.result.timeStamp);
-        }});
+GCViewerDB.prototype.findMin = function (attribute, resultObj) {
+    this.db.findMax('gcEntry', attribute, resultObj);
 };
 
-GCViewerDB.prototype.getDataPoints = function () {
-    this.db.processObjectArray('gcEntry', function (array) {
-    },
-            {
-                result: 0,
-                callback: function () {
-                    console.log("callback fired");
-                }
-            });
+GCViewerDB.prototype.findMax = function (attribute, resultObj) {
+    this.db.findMax('gcEntry', attribute, resultObj);
 };
 
-GCViewerDB.prototype.drawGraph = function () {
-    console.log("not yet implemented");
+GCViewerDB.prototype.getDataPoints = function (callback) {
+    this.db.getObjectArray('gcEntry',callback);
 };
+

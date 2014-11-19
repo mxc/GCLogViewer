@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-self.addEventListener('message',function(e){
-    var gcViewerDB = e.gcViewerDB;
-    getChartObject(gcViwerDB);
+importScripts("gcViewerDB.js","db.js");
+
+self.addEventListener('message', function (e) {
+    var array = e.data;
+    getChartObject(array)
 });
 
-function getChartObject(db) {
-   // db.findMax('timeStamp');
-   // db.findMin('timeStamp');
-  //  db.findMin('totalHeap');
-  //  db.findMax('totalHeap');
-  //  var data = db.processObjectArray();
-//                
-//                db.processObjectArray('gcEntry', function (array) {
-//                    console.log("drawing data point");
-//                    array.forEach(function (value, index, array) {
-//                        var li = document.createElement("li");
-//                        var str = value.timeStamp+" "+value.totalHeap;
-//                        li.appendChild(document.createTextNode(str));
-//                        var ul = document.getElementById("list");
-//                        ul.appendChild(li);
-//                    });
-//                },{result:0,callback:function(){console.log("callback fired");}});    
+function getChartObject(array) {
+    var propBag = {
+        minHeap:99999999,
+        maxHeap:0,
+        minTimeStamp:9999999999,
+        maxTimeStamp:0
+    };
+    array.forEach(function(value,index,array){
+        propBag.minHeap = value.totalHeap <propBag.minHeap? value.totalHeap:propBag.minHeap;
+        propBag.maxHeap = value.totalHeap >propBag.maxHeap? value.totalHeap:propBag.maxHeap;
+        propBag.minTimeStamp = value.timeStamp< propBag.minTimeStamp? value.timeStamp: propBag.minTimeStamp;
+        propBag.maxTimeStamp = value.timeStamp> propBag.maxTimeStamp? value.timeStamp: propBag.maxTimeStamp;
+    });
+    this.postMessage(propBag);
 }
-
-
-
