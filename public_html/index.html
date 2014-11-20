@@ -55,57 +55,11 @@
             }
 
             function drawGraph() {
-                db.getDataPoints(function (array) {
-                    var worker = new Worker('js/worker.js');
-                    worker.addEventListener('message', function (e) {
-                        var graph = new Rickshaw.Graph({
-                            element: document.querySelector("#chart"),
-                            width: 880,
-                            height: 800,
-                            series: e.data.data
-                        });
-                        var legend = new Rickshaw.Graph.Legend({
-                            element: document.querySelector('#legend'),
-                            graph: graph
-                        });
-
-//                        var y_axis = new Rickshaw.Graph.Axis.Y({
-//                            graph: graph,
-//                            orientation: 'left',
-//                            tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-//                            element: document.getElementById('y_axis'),
-//                        });
-
-                        graph.render();
-                    });
-                    worker.postMessage(array);
-                });
+               drawChart(db);
             }
             ;
 
         </script>
-        <style>
-            #chart_container {
-                position: relative;
-                display: inline-block;
-                font-family: Arial, Helvetica, sans-serif;
-            }
-            #chart {
-                display: inline-block;
-                margin-left: 40px;
-            }
-            #y_axis {
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 40px;
-            }
-            #legend {
-                display: inline-block;
-                vertical-align: top;
-                margin: 0 0 0 10px;
-            }
-        </style>        
     </head>
     <body>
         <form>
@@ -116,11 +70,6 @@
             <input type="button" value="Find Max" onclick="return db.findMax()" />
             <input type="button" value="Draw Graph" onclick="return drawGraph()" />
         </form>
-        <div id="chart_container">
-            <div id="y_axis"></div>
-            <div id="chart"></div>
-        </div>
-        <div id="legend"></div>
-
+        <div id="chart"></div>
     </body>
 </html>

@@ -18,7 +18,7 @@ importScripts("gcViewerDB.js", "db.js");
 
 self.addEventListener('message', function (e) {
     var array = e.data;
-    getChartObject(array)
+    getChartObject(array);
 });
 
 function getChartObject(array) {
@@ -29,43 +29,41 @@ function getChartObject(array) {
         maxTimeStamp: 0,
         data: [{
                 name: 'youngUsed',
-                color: 'orange',
+                colour: 'orange',
                 data: []
             },
             {
                 name: 'youngTotal',
-                color: 'blue',
+                colour: 'blue',
                 data: []
             },
             {
                 name: 'oldGenUsed',
-                color: 'red',
+                colour: 'red',
                 data: []
             },
             {
                 name: 'heapTotal',
-                color: 'green',
+                colour: 'green',
                 data: []
             }
         ]
     };
     array.forEach(function (value, index, array) {
-        if (index < 5) {
-            propBag.data[0].data.push({x: value.timeStamp - 1, y: isNaN(value.youngGenUsedPrior) ? 0 : value.youngGenUsedPrior});
-            propBag.data[1].data.push({x: value.timeStamp-1, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
-            propBag.data[2].data.push({x: value.timeStamp - 1, y: isNaN(value.totalUsedPrior) ? 0 : value.totalUsedPrior});
-            propBag.data[3].data.push({x: value.timeStamp-1, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
+        propBag.data[0].data.push({x: value.timeStamp - 1, y: isNaN(value.youngGenUsedPrior) ? 0 : value.youngGenUsedPrior});
+        propBag.data[1].data.push({x: value.timeStamp - 1, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
+        propBag.data[2].data.push({x: value.timeStamp - 1, y: isNaN(value.totalUsedPrior) ? 0 : value.totalUsedPrior});
+        propBag.data[3].data.push({x: value.timeStamp - 1, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
 
-            propBag.data[0].data.push({x: value.timeStamp, y: isNaN(value.youngGenUsedAfter) ? 0 : value.youngGenUsedAfter});
-            propBag.data[1].data.push({x: value.timeStamp, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
-            propBag.data[2].data.push({x: value.timeStamp, y: isNaN(value.totalUsedAfter) ? 0 : value.totalUsedAfter});
-            propBag.data[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
+        propBag.data[0].data.push({x: value.timeStamp, y: isNaN(value.youngGenUsedAfter) ? 0 : value.youngGenUsedAfter});
+        propBag.data[1].data.push({x: value.timeStamp, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
+        propBag.data[2].data.push({x: value.timeStamp, y: isNaN(value.totalUsedAfter) ? 0 : value.totalUsedAfter});
+        propBag.data[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
 
-            propBag.minHeap = value.totalHeap < propBag.minHeap ? value.totalHeap : propBag.minHeap;
-            propBag.maxHeap = value.totalHeap > propBag.maxHeap ? value.totalHeap : propBag.maxHeap;
-            propBag.minTimeStamp = value.timeStamp < propBag.minTimeStamp ? value.timeStamp : propBag.minTimeStamp;
-            propBag.maxTimeStamp = value.timeStamp > propBag.maxTimeStamp ? value.timeStamp : propBag.maxTimeStamp;
-        }
+        propBag.miny = value.totalHeap < propBag.minHeap ? value.totalHeap : propBag.minHeap;
+        propBag.maxy = value.totalHeap > propBag.maxHeap ? value.totalHeap : propBag.maxHeap;
+        propBag.minx = value.timeStamp < propBag.minTimeStamp ? value.timeStamp : propBag.minTimeStamp;
+        propBag.maxx = value.timeStamp > propBag.maxTimeStamp ? value.timeStamp : propBag.maxTimeStamp;
     });
     console.log(propBag);
     this.postMessage(propBag);
