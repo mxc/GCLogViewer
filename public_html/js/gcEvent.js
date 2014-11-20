@@ -18,11 +18,11 @@
 function GCEvent(dateStamp, timeStamp,
         youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
         totalUsedPrior, totalUsedAfter, totalHeap, time) {
-    this.youngGenUsedBefore = parseInt(youngGenUsedPrior);
     this.timeStamp = parseFloat(timeStamp);
     if (dateStamp !== null) {
         this.dateStamp = Date.parse(dateStamp);
     }
+    this.youngGenUsedPrior = parseInt(youngGenUsedPrior);
     this.youngGenUsedAfter = parseInt(youngGenUsedAfter);
     this.totalYoungGen = parseInt(totalYoungGen);
     this.totalUsedPrior = parseInt(totalUsedPrior);
