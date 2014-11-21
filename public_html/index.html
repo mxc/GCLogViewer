@@ -23,8 +23,6 @@
         <script src="js/gcEvent.js"></script>
         <script src="js/gcViewerDB.js"></script>
         <script src="js/chart.js"></script>
-        <script src="bower_components/d3/d3.js"></script>
-        <script src="bower_components/rickshaw/rickshaw.js"></script>        
         <script>
             var db = new GCViewerDB();
             document.onreadystatechange = function () {
@@ -55,11 +53,21 @@
             }
 
             function drawGraph() {
-               drawChart(db);
+                drawChart(db, "#chart", "#legend");
+
             }
             ;
 
         </script>
+        <style>
+            .labels>ul{
+                width:150px;
+                border: 1px solid black;
+                text-decoration: none;
+                list-style: none;
+                padding:0px;
+            }
+        </style>
     </head>
     <body>
         <form>
@@ -71,5 +79,6 @@
             <input type="button" value="Draw Graph" onclick="return drawGraph()" />
         </form>
         <div id="chart"></div>
+        <div id="legend" class="labels"></div>
     </body>
 </html>

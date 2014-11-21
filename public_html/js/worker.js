@@ -27,38 +27,38 @@ function getChartObject(array) {
         maxHeap: 0,
         minTimeStamp: 9999999999,
         maxTimeStamp: 0,
-        data: [{
-                name: 'youngUsed',
+        series: [{
+                name: 'Young Gen Used',
                 colour: 'orange',
                 data: []
             },
             {
-                name: 'youngTotal',
+                name: 'Young Gen Total',
                 colour: 'blue',
                 data: []
             },
             {
-                name: 'oldGenUsed',
+                name: 'Old Gen Used',
                 colour: 'red',
                 data: []
             },
             {
-                name: 'heapTotal',
+                name: 'Total Heap',
                 colour: 'green',
                 data: []
             }
         ]
     };
     array.forEach(function (value, index, array) {
-        propBag.data[0].data.push({x: value.timeStamp - 1, y: isNaN(value.youngGenUsedPrior) ? 0 : value.youngGenUsedPrior});
-        propBag.data[1].data.push({x: value.timeStamp - 1, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
-        propBag.data[2].data.push({x: value.timeStamp - 1, y: isNaN(value.totalUsedPrior) ? 0 : value.totalUsedPrior});
-        propBag.data[3].data.push({x: value.timeStamp - 1, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
+        propBag.series[0].data.push({x: value.timeStamp - 1, y: isNaN(value.youngGenUsedPrior) ? 0 : value.youngGenUsedPrior});
+        propBag.series[1].data.push({x: value.timeStamp - 1, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
+        propBag.series[2].data.push({x: value.timeStamp - 1, y: isNaN(value.totalUsedPrior) ? 0 : value.totalUsedPrior});
+        propBag.series[3].data.push({x: value.timeStamp - 1, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
 
-        propBag.data[0].data.push({x: value.timeStamp, y: isNaN(value.youngGenUsedAfter) ? 0 : value.youngGenUsedAfter});
-        propBag.data[1].data.push({x: value.timeStamp, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
-        propBag.data[2].data.push({x: value.timeStamp, y: isNaN(value.totalUsedAfter) ? 0 : value.totalUsedAfter});
-        propBag.data[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
+        propBag.series[0].data.push({x: value.timeStamp, y: isNaN(value.youngGenUsedAfter) ? 0 : value.youngGenUsedAfter});
+        propBag.series[1].data.push({x: value.timeStamp, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
+        propBag.series[2].data.push({x: value.timeStamp, y: isNaN(value.totalUsedAfter) ? 0 : value.totalUsedAfter});
+        propBag.series[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
 
         propBag.miny = value.totalHeap < propBag.minHeap ? value.totalHeap : propBag.minHeap;
         propBag.maxy = value.totalHeap > propBag.maxHeap ? value.totalHeap : propBag.maxHeap;
