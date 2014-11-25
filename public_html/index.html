@@ -18,67 +18,67 @@
     <head>
         <title>GC Viewer</title>
         <meta charset="UTF-8">
+        <!-- build:css css/styles.min.css -->
+        <link rel="stylesheet" href="css/style.css">
+        <!-- bower:css -->
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+        <!-- endbower -->
+        <!-- endbuild -->        
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="js/db.js"></script>
-        <script src="js/gcEvent.js"></script>
-        <script src="js/gcViewerDB.js"></script>
-        <script src="js/chart.js"></script>
-        <script>
-            var db = new GCViewerDB();
-            document.onreadystatechange = function () {
-                if (document.readyState === 'complete') {
-                    db.initDb();
-                }
-            }
-
-            function processFile() {
-                var file = document.getElementById("file").files[0];
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    var objs = [];
-                    var lines = reader.result.split(/\r\n|\r|\n/g);
-                    lines.forEach(function (value, index, array) {
-                        var obj = parseLogEntry(value);
-                        if (obj !== undefined) {
-                            objs.push(obj);
-                        }
-                    });
-                    db.updateDataStore(objs);
-                };
-                reader.onerror = function (e) {
-                    document.body.appendChild(document.createTextNode(reader.error));
-                };
-                reader.readAsText(file);
-                return false;
-            }
-
-            function drawGraph() {
-                drawChart(db, "#chart", "#legend");
-
-            }
-            ;
-
-        </script>
-        <style>
-            .labels>ul{
-                width:150px;
-                border: 1px solid black;
-                text-decoration: none;
-                list-style: none;
-                padding:0px;
-            }
-        </style>
     </head>
-    <body>
-        <form>
-            <input type="file" id="file">
-            <input type="submit" value="Submit" onclick="return processFile();">
-            <input type="button" value="Drop Datastore" onclick="return db.dropDataStore()" />
-            <input type="button" value="Create Datastore" onclick="return db.createDataStore()" />
-            <input type="button" value="Find Max" onclick="return db.findMax()" />
-            <input type="button" value="Draw Graph" onclick="return drawGraph()" />
-        </form>
-        <div id="chart"></div>
-        <div id="legend" class="labels"></div>
+    <body ng-app="app" ng-controller="GCLogViewerController">
+            <div data-navbar>
+                <title>GC Log Viewer</title>
+                <menu>
+                    <menuitem click="showFileUploadForm()">Load File</menuitem>
+                    <menuitem click="drawGraph()">View Graphs</menuitem>
+<!--                    <menuitem>Maintenance
+                        <menuitem click="createDataStore">Create Data Store</menuitem>
+                        <menuitem click="dropDataStore">Drop Data Store</menuitem>
+                    </menuitem>-->
+                </menu>
+            </div>
+        <div id="modal" class="popupContainer" style="display:none;">
+            <header class="popupHeader">
+                <span class="header_title">Login</span>
+                <span class="modal_close"><i class="fa fa-times"></i></span>
+            </header>
+
+            <section class="popupBody">
+                <form name="form">
+                    <label for="host">Please specify server:</label>
+                    <input id="host" type="text" ng-model="host" name="host" required>
+                    <span style="color:red" ng-show="form.host.$dirty && form.host.$invalid">
+                        <span ng-show="form.host.$error.required">A host name is required.</span>
+                    </span>
+                    <label for="date">Please indicate log date (if -XX:DateStamp is enabled this is not necessary):</label>
+                    <input id="date" type="date" ng-model="date" name="date" >
+                    <input type="file" ng-model="file" name="file" required>
+                    <span style="color:red" ng-show="form.file.$dirty && form.file.$invalid">
+                        <span ng-show="form.file.$error.required">A file name is required.</span>
+                    </span>
+                    <input type="submit" id="submit" value="Submit" ng-click="processFile()">
+                </form>    
+            </section>
+        </div>        
+
+        <input type="button" id="drop" value="Drop Data Store" ng-click="dropDataStore()"/>
+        <input type="button" id="create" value="Create Data Store" ng-click="createDataStore()"/>
+        <input type="button" id="draw" value="Draw Graph" ng-click="drawGraph()"/>
+        <div id="chart">
+            <div class="labels"></div>
+        </div>
+        <!-- build:js js/scripts.min.js -->
+        <!-- bower:js -->
+        <script src="bower_components/jquery/dist/jquery.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+        <!-- endbower -->        
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/chart.js"></script>
+        <script src="js/db.js"></script>
+        <script src="js/gcViewerDB.js"></script>
+        <script src="js/gcEvent.js"></script>
+        <!-- endbuild -->        
     </body>
 </html>

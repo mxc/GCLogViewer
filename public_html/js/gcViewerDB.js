@@ -14,54 +14,56 @@
  * limitations under the License.
  */
 
+app.factory('GCViewerDB', ['getDataStoreObject', function (getDataStoreObject) {
 
-function GCViewerDB() {
-    this.db = null;
-}
+        var GCViewerDB = function () {
+            this.db = null;
+        };
 
-GCViewerDB.prototype.initDb = function () {
+        GCViewerDB.prototype.initDb = function () {
 
-    var schema = [{
-            gcEntry: {
-                params: {
-                    autoIncrement: true
-                }
-            }
-        },
-        {
-            gcEntry: {
-                indices: [
-                    ['timestamp', 'timeStamp', {unique: false}],
-                    ['dateStamp', 'dateStamp', {unique: false}]
-                ]
-            }
-        }];
+            var schema = [{
+                    gcEntry: {
+                        params: {
+                            autoIncrement: true
+                        }
+                    }
+                },
+                {
+                    gcEntry: {
+                        indices: [
+                            ['timestamp', 'timeStamp', {unique: false}],
+                            ['dateStamp', 'dateStamp', {unique: false}]
+                        ]
+                    }
+                }];
 
-    this.db = getDataStoreObject("GCViewer", 2, schema);
-};
+            this.db = getDataStoreObject("GCViewer", 2, schema);
+        };
 
-GCViewerDB.prototype.updateDataStore = function (objs) {
-    var objStore = this.db.getObjectStoreFromTransaction("gcEntry", "readwrite");
-    this.db.insertObjectArray(objStore, objs);
-};
+        GCViewerDB.prototype.updateDataStore = function (objs) {
+            var objStore = this.db.getObjectStoreFromTransaction("gcEntry", "readwrite");
+            this.db.insertObjectArray(objStore, objs);
+        };
 
-GCViewerDB.prototype.dropDataStore = function () {
-    this.db.dropDataStore();
-};
+        GCViewerDB.prototype.dropDataStore = function () {
+            this.db.dropDataStore();
+        };
 
-GCViewerDB.prototype.createDataStore = function () {
-    this.db.createDataStore();
-};
+        GCViewerDB.prototype.createDataStore = function () {
+            this.db.createDataStore();
+        };
 
-GCViewerDB.prototype.findMin = function (attribute, resultObj) {
-    this.db.findMax('gcEntry', attribute, resultObj);
-};
+        GCViewerDB.prototype.findMin = function (attribute, resultObj) {
+            this.db.findMax('gcEntry', attribute, resultObj);
+        };
 
-GCViewerDB.prototype.findMax = function (attribute, resultObj) {
-    this.db.findMax('gcEntry', attribute, resultObj);
-};
+        GCViewerDB.prototype.findMax = function (attribute, resultObj) {
+            this.db.findMax('gcEntry', attribute, resultObj);
+        };
 
-GCViewerDB.prototype.getDataPoints = function (callback) {
-    this.db.getObjectArray('gcEntry',callback);
-};
-
+        GCViewerDB.prototype.getDataPoints = function (callback) {
+            this.db.getObjectArray('gcEntry', callback);
+        };
+        return GCViewerDB;
+    }]);

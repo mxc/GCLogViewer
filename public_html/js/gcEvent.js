@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+app.factory("GCEvent",function(){
 
-function GCEvent(dateStamp, timeStamp,
+function GCEvent (dateStamp, timeStamp,
         youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
         totalUsedPrior, totalUsedAfter, totalHeap, time) {
     this.timeStamp = parseFloat(timeStamp);
@@ -31,7 +32,7 @@ function GCEvent(dateStamp, timeStamp,
     this.time = parseFloat(time);
 };
 
-function parseLogEntry(line) {
+var parseLogEntry = function (line) {
     var regex = /(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?\[.*?(?:\[.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs)?\])?(?:\s(\d+)K->(\d+)K\((\d+)K\)),\s(\d+\.\d+) secs]/;
     var matches = line.match(regex);
     if (!matches) {
@@ -51,3 +52,9 @@ function parseLogEntry(line) {
             totalUsedPrior, totalUsedAfter, totalHeap, time);
     return data;
 };
+
+return {
+    parseLogEntry: parseLogEntry
+};
+
+});

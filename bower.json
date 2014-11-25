@@ -1,0 +1,29 @@
+{
+  "name": "GCLogViewer",
+  "version": "0.1.0",
+  "authors": [
+    "Mark Clarke <mark@jumpingbean.co.za>"
+  ],
+  "description": "Java GC log viewer application",
+  "main": "index.html",
+  "keywords": [
+    "java",
+    "gc",
+    "log",
+    "viewer"
+  ],
+  "license": "Apache 2",
+  "homepage": "http://www.jumpingbean.co.za",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.1",
+    "angular": "~1.3.3"
+  }
+}
