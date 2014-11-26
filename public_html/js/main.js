@@ -14,56 +14,77 @@
  * limitations under the License.
  */
 
-var app = angular.module("app", []);
+var app = angular.module("app", ['ui.bootstrap']);
 
-app.directive("navbar", function () {
+app.directive("bootstrapnavbar", ["$window", function ($window) {
+        return {
+            retrict: 'E',
+            template: '<nav class="navbar navbar-default navbar-inverse" role="navigation">' +
+                    '<div class="container-fluid"><ng-transclude></ng-transclude></div></nav>',
+            replace: true,
+            transclude: true
+        };
+    }]);
+
+app.directive("menutitle", function () {
     return {
-        retrict: 'A',
-        controller: 'NavBarController',
-        templateUrl: '/templates/nav.html',
-        //replace:true,
-        transclude: false,
+        restrict: 'E',
+        templateUrl: "templates/navbartitle.html",
+        replace: true,
+        transclude: true,
         scope: {},
-        compile: 
-        function (scope, element, attrs,more) {
-            return function (scope, element, attrs, ctrl) {
-                scope.title = element.find("title").text();
-                var children = element.find("menu");
-                console.log(element);
-                console.log(children);
-                var menuitems = [];
-                for (var i = 0; i < children.length; i++) {
-                    menuitems.push(
-                            {
-                                title: children[i].text(),
-                                onclick: children[i].attr('ng-click')
-                            }
-                    );
-                }
-                scope.menuitems = menuitems;
-                }
-            }
     };
 });
 
-app.controller("NavBarController", ['$scope', '$attrs',
-    function ($scope) {
-        this.active = "";
-    }]);
+
+app.directive("dropdownmenuitem", function () {
+    return {
+        restrict: 'E',
+        replace: true,
+        transclude: true,
+        scope: {
+            title: "@",
+        },
+        template: "<li role='presentation' class='dropdown'><a class='dropdown-toggle'" +
+                " data-toggle='dropdown' href='#' role='button' ng-click='unset()'> {{title}} " +
+                "<span class='caret'></span></a> <ul class='dropdown-menu'" +
+                " role='menu' ng-transclude></ul></li>",
+    }
+});
+
+app.directive("menu", function () {
+    return {
+        restrict: 'E',
+        template: "<div class='collapse navbar-collapse' id='mainmenu'>" +
+                "<ul class='nav navbar-nav navbar-left' ng-transclude></ul></div>",
+        replace: true,
+        transclude: true
+    }
+});
+
+app.directive("menuitem", function () {
+    return {
+        restrict: 'E',
+        template: "<li role='presentation'><a  href='#' ng-transclude></a></li>",
+        replace: true,
+        transclude: true,
+    }
+});
 
 app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
-    'Chart', 'GCEvent',
-    function ($scope, $window, GCViewerDB, Chart, GCEvent) {
+    'Chart', 'GCEvent', '$modal',
+    function ($scope, $window, GCViewerDB, Chart, GCEvent, $modal) {
 
         var db = new GCViewerDB();
         db.initDb();
+        $scope.active = "";
 
-        $scope.showFileUploadForm = function () {
-            toggle("loadFile");
-        };
+        $scope.unset = function () {
+            $scope.active = "";
+        }
 
-        $scope.processFile = function () {
-            var file = $scope.file;
+        function processFile(filename) {
+            var file = filename;
             var reader = new FileReader();
             reader.onload = function (e) {
                 var objs = [];
@@ -81,10 +102,11 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
             };
             reader.readAsText(file);
             return false;
-        };
+       };
 
-        $scope.drawGraph = function () {
-            toggle("drawChart");
+
+        $scope.viewCharts = function () {
+            this.active = "viewCharts";
             Chart.drawChart(db, "#chart", "#legend");
         };
 
@@ -93,7 +115,30 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
         };
 
         $scope.createDataStore = function () {
-            return  db.createDataStore();
+            db.createDataStore();
         };
 
+        $scope.openUploadDialog = function () {
+            var modalInstance = $modal.open({
+                templateUrl: 'templates/uploadfile.html',
+                controller: 'ModalInstanceController'
+            });
+
+            modalInstance.result.then(function (filename) {
+                processFile(filename);
+            }, function () {
+                console.info('Modal dismissed ');
+            });
+        };
     }]);
+
+
+app.controller('ModalInstanceController', function ($scope, $modalInstance) {
+    $scope.ok = function () {
+        $modalInstance.close($scope.filename);
+    };
+
+    $scope.cancel = function () {
+        $modalInstance.dismiss('cancel');
+    };
+});

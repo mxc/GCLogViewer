@@ -27,58 +27,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body ng-app="app" ng-controller="GCLogViewerController">
-            <div data-navbar>
-                <title>GC Log Viewer</title>
-                <menu>
-                    <menuitem click="showFileUploadForm()">Load File</menuitem>
-                    <menuitem click="drawGraph()">View Graphs</menuitem>
-<!--                    <menuitem>Maintenance
-                        <menuitem click="createDataStore">Create Data Store</menuitem>
-                        <menuitem click="dropDataStore">Drop Data Store</menuitem>
-                    </menuitem>-->
-                </menu>
-            </div>
-        <div id="modal" class="popupContainer" style="display:none;">
-            <header class="popupHeader">
-                <span class="header_title">Login</span>
-                <span class="modal_close"><i class="fa fa-times"></i></span>
-            </header>
+    <bootstrapnavbar>
+        <menutitle>GC Log Viewer</menutitle>
+        <menu>
+            <menuitem ng-class="{active: active === 'showFileUploadForm'}" ng-click="openUploadDialog()">Load File</menuitem>
+            <menuitem ng-class="{active: active === 'viewCharts'}"  ng-click="viewCharts()">View Graphs</menuitem>
+            <dropdownmenuitem title="Maintenance">
+                <menuitem ng-click="createDataStore()">Create Data Store</menuitem>
+                <menuitem ng-click="dropDataStore()">Drop Data Store</menuitem>
+            </dropdownmenuitem>
+        </menu>
+    </bootstrapnavbar>
 
-            <section class="popupBody">
-                <form name="form">
-                    <label for="host">Please specify server:</label>
-                    <input id="host" type="text" ng-model="host" name="host" required>
-                    <span style="color:red" ng-show="form.host.$dirty && form.host.$invalid">
-                        <span ng-show="form.host.$error.required">A host name is required.</span>
-                    </span>
-                    <label for="date">Please indicate log date (if -XX:DateStamp is enabled this is not necessary):</label>
-                    <input id="date" type="date" ng-model="date" name="date" >
-                    <input type="file" ng-model="file" name="file" required>
-                    <span style="color:red" ng-show="form.file.$dirty && form.file.$invalid">
-                        <span ng-show="form.file.$error.required">A file name is required.</span>
-                    </span>
-                    <input type="submit" id="submit" value="Submit" ng-click="processFile()">
-                </form>    
-            </section>
-        </div>        
-
-        <input type="button" id="drop" value="Drop Data Store" ng-click="dropDataStore()"/>
-        <input type="button" id="create" value="Create Data Store" ng-click="createDataStore()"/>
-        <input type="button" id="draw" value="Draw Graph" ng-click="drawGraph()"/>
-        <div id="chart">
-            <div class="labels"></div>
-        </div>
-        <!-- build:js js/scripts.min.js -->
-        <!-- bower:js -->
-        <script src="bower_components/jquery/dist/jquery.js"></script>
-        <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-        <!-- endbower -->        
-        <script src="bower_components/angular/angular.js"></script>
-        <script src="js/main.js"></script>
-        <script src="js/chart.js"></script>
-        <script src="js/db.js"></script>
-        <script src="js/gcViewerDB.js"></script>
-        <script src="js/gcEvent.js"></script>
-        <!-- endbuild -->        
-    </body>
+    <div id="chart">
+        <div class="labels"></div>
+    </div>
+    <!-- build:js js/scripts.min.js -->
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <!-- endbower -->        
+    <script src="js/main.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/gcViewerDB.js"></script>
+    <script src="js/gcEvent.js"></script>
+    <!-- endbuild -->        
+</body>
 </html>

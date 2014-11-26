@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <h4 class="modal-title">Upload Log File</h4>
+</div>
+<div class="modal-body">
+    <label for="host">Please specify server:</label>
+    <input id="host" type="text" ng-model="host" name="host" required>
+    <span style="color:red" ng-show="form.host.$dirty && form.host.$invalid">
+        <span ng-show="form.host.$error.required">A host name is required.</span>
+    </span>
+    <label for="date">Please indicate log date (if -XX:DateStamp is enabled this is not necessary):</label>
+    <input id="date" type="date" ng-model="date" name="date" >
+    <span class="btn btn-default btn-file"><input type="file" ng-model="filename" name="file" required></span>
+    <span style="color:red" ng-show="form.file.$dirty && form.file.$invalid">
+        <span ng-show="form.file.$error.required">A file name is required.</span>
+    </span>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="close()">Close</button>
+    <button type="button" class="btn btn-primary"  ng-click="ok()">Process File</button>
+</div>
+
