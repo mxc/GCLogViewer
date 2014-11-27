@@ -42,22 +42,7 @@ app.factory('GCViewerDB', ['getDataStoreObject', function (getDataStoreObject) {
         };
 
         GCViewerDB.prototype.updateDataStore = function (objs,onsuccess,onerror,onabort,oncommit) {
-            var objStore = this.db.getObjectStoreFromTransaction("gcEntry", "readwrite");
-            objStore.onabort = function(e){
-                console.log("Transaction aborted due to error");
-                if (onabort){
-                    onabort(e);
-                }
-            };
-            objStore.onerror =function(e){
-                console.log("transaction error");
-            }
-            objStore.oncomplete=function(e){
-                if (oncommit){
-                    oncommit(e);
-                }
-                console.log("Transaction committed");
-            };
+            var objStore = this.db.getObjectStoreFromTransaction("gcEntry", "readwrite",onabort,oncommit);
             this.db.insertObjectArray(objStore, objs,onsuccess,onerror);
         };
 

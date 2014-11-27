@@ -93,10 +93,20 @@ app.factory('getDataStoreObject', function () {
                         console.log("updating database to latest verison");
                     };
                 },
-                getObjectStoreFromTransaction: function (objectStore, mode, onComplete, onError) {
+                getObjectStoreFromTransaction: function (objectStore, mode, oncomplete, onerror) {
                     var trans = db.transaction(objectStore, mode);
-                    trans.onComplete = onComplete;
-                    trans.onError = onError;
+                    trans.onerror = function (e) {
+                        if (onerror!==undefined){
+                            onerror(e);
+                        }
+                        console.log("transaction error");
+                    };
+                    trans.oncomplete = function (e) {
+                        if (oncomplete!==undefined) {
+                            oncomplete(e);
+                        }
+                        console.log("Transaction committed");
+                    };
                     return trans.objectStore(objectStore);
                 },
                 close: function () {
@@ -146,12 +156,7 @@ app.factory('getDataStoreObject', function () {
 
     DataStore.prototype.getObjectStoreFromTransaction = function (objStore, mode, success, failure) {
         var objStore = this.dbCon.getObjectStoreFromTransaction(objStore, mode,
-                function (e) {
-                    console.log("success");
-                },
-                function (e) {
-                    console.log("failed");
-                });
+                failure,success);
         return objStore;
     };
     DataStore.prototype.dropDataStore = function () {
@@ -161,26 +166,26 @@ app.factory('getDataStoreObject', function () {
     DataStore.prototype.createDataStore = function () {
         this.dbCon.createDataStore();
     };
-    DataStore.prototype.insertObjectArray = function (objStore, objs, success, error) {
+    DataStore.prototype.insertObjectArray = function (objectStore, objs, success, error) {
         var value = objs.shift();
         var self = this;
         if (value !== undefined && value !== null) {
-            var request = objStore.add(value);
+            var request = objectStore.add(value);
             request.onsuccess = function (e) {
-                if (success === undefined || success===null) {
+                if (success === undefined || success === null) {
                     console.log("object inserted");
                 } else {
                     success(e);
                 }
-                self.insertObjectArray(objStore, objs);
-            };            
+                self.insertObjectArray(objectStore, objs);
+            };
             request.onerror = function (e) {
-                if (error === undefined|| error===null) {
+                if (error === undefined || error === null) {
                     console.log(e);
                 } else {
                     error(e);
                 }
-                objStore.abort();
+                objectStore.abort();
             };
         }
     };

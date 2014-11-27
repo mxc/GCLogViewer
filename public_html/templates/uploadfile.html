@@ -5,7 +5,7 @@
 <form name="form">
 <div class="modal-body">
     <table>
-        <tr ng-if="errors.length>0"><td colspan="2"><alert><span  ng-repeat="error in errors">{{error}}<br></span></alert></td></tr>
+        <tr ng-if="errors.length>0"><td colspan="2"><alert type="danger"><span  ng-repeat="error in errors">{{error}}<br></span></alert></td></tr>
         <tr><td><label for="host">Server:</label></td>
             <td><input id="host" type="text" ng-model="host" name="host" required></td></tr>
         <tr><td><label for="date">Log date (if -XX:DateStamp not set):</label></td>

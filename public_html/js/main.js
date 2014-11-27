@@ -36,7 +36,6 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
             var reader = new FileReader();
             reader.onload = function (e) {
                 var objs = [];
-                var count = objs.length;
                 var lines = reader.result.split(/\r\n|\r|\n/g);
                 lines.forEach(function (value, index, array) {
                     var obj = GCEvent.parseLogEntry(value);
@@ -44,9 +43,11 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                         objs.push(obj);
                     }
                 });
+                var count = objs.length;
                 db.updateDataStore(objs,null,null,function(e){ 
                     console.log("Aborted!");
                 },function(e){
+                    $scope.successes.push("File loaded. "+count+" lines read.");
                     console.log("Committed "+ count +" entries");
                 });
             };
