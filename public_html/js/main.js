@@ -16,60 +16,6 @@
 
 var app = angular.module("app", ['ui.bootstrap']);
 
-app.directive("bootstrapnavbar", ["$window", function ($window) {
-        return {
-            retrict: 'E',
-            template: '<nav class="navbar navbar-default navbar-inverse" role="navigation">' +
-                    '<div class="container-fluid"><ng-transclude></ng-transclude></div></nav>',
-            replace: true,
-            transclude: true
-        };
-    }]);
-
-app.directive("menutitle", function () {
-    return {
-        restrict: 'E',
-        templateUrl: "templates/navbartitle.html",
-        replace: true,
-        transclude: true,
-        scope: {},
-    };
-});
-
-
-app.directive("dropdownmenuitem", function () {
-    return {
-        restrict: 'E',
-        replace: true,
-        transclude: true,
-        scope: {
-            title: "@",
-        },
-        template: "<li role='presentation' class='dropdown'><a class='dropdown-toggle'" +
-                " data-toggle='dropdown' href='#' role='button' ng-click='unset()'> {{title}} " +
-                "<span class='caret'></span></a> <ul class='dropdown-menu'" +
-                " role='menu' ng-transclude></ul></li>",
-    }
-});
-
-app.directive("menu", function () {
-    return {
-        restrict: 'E',
-        template: "<div class='collapse navbar-collapse' id='mainmenu'>" +
-                "<ul class='nav navbar-nav navbar-left' ng-transclude></ul></div>",
-        replace: true,
-        transclude: true
-    }
-});
-
-app.directive("menuitem", function () {
-    return {
-        restrict: 'E',
-        template: "<li role='presentation'><a  href='#' ng-transclude></a></li>",
-        replace: true,
-        transclude: true,
-    }
-});
 
 app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
     'Chart', 'GCEvent', '$modal',
@@ -78,6 +24,8 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
         var db = new GCViewerDB();
         db.initDb();
         $scope.active = "";
+        $scope.successes = [];
+        $scope.errors = [];
 
         $scope.unset = function () {
             $scope.active = "";
@@ -88,6 +36,7 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
             var reader = new FileReader();
             reader.onload = function (e) {
                 var objs = [];
+                var count = objs.length;
                 var lines = reader.result.split(/\r\n|\r|\n/g);
                 lines.forEach(function (value, index, array) {
                     var obj = GCEvent.parseLogEntry(value);
@@ -95,14 +44,19 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                         objs.push(obj);
                     }
                 });
-                db.updateDataStore(objs);
+                db.updateDataStore(objs,null,null,function(e){ 
+                    console.log("Aborted!");
+                },function(e){
+                    console.log("Committed "+ count +" entries");
+                });
             };
             reader.onerror = function (e) {
                 $window.document.body.appendChild(document.createTextNode(reader.error));
             };
             reader.readAsText(file);
             return false;
-       };
+        }
+        ;
 
 
         $scope.viewCharts = function () {
@@ -132,10 +86,23 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
         };
     }]);
 
-
 app.controller('ModalInstanceController', function ($scope, $modalInstance) {
+
+    function validate(name, item, arr) {
+        if (item === undefined || item === null) {
+            arr.push(name + " is invalid.");
+        }
+    }
+
     $scope.ok = function () {
-        $modalInstance.close($scope.filename);
+        $scope.errors = [];
+        validate("File", $scope.file, $scope.errors);
+        validate("Server", $scope.host, $scope.errors);
+        if ($scope.errors.length > 0) {
+            return;
+        } else {
+            $modalInstance.close($scope.file);
+        }
     };
 
     $scope.cancel = function () {

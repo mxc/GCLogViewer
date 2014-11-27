@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-app.factory('getDataStoreObject',function () {
+app.factory('getDataStoreObject', function () {
 
     var getDataStoreObject = function (dbName, version, schema) {
 
         var dbCon = createIndexedDBConnection(dbName, version, schema);
         return new DataStore(dbCon);
-
 //======================================================
 
 //      Schema is an array where the index is the db version number-1, with
@@ -155,27 +154,33 @@ app.factory('getDataStoreObject',function () {
                 });
         return objStore;
     };
-
     DataStore.prototype.dropDataStore = function () {
         this.dbCon.close();
         this.dbCon.dropDataStore();
     };
-
     DataStore.prototype.createDataStore = function () {
         this.dbCon.createDataStore();
     };
-
-    DataStore.prototype.insertObjectArray = function (objStore, objs) {
+    DataStore.prototype.insertObjectArray = function (objStore, objs, success, error) {
         var value = objs.shift();
         var self = this;
         if (value !== undefined && value !== null) {
             var request = objStore.add(value);
             request.onsuccess = function (e) {
-                console.log("sucess");
+                if (success === undefined || success===null) {
+                    console.log("object inserted");
+                } else {
+                    success(e);
+                }
                 self.insertObjectArray(objStore, objs);
-            };
+            };            
             request.onerror = function (e) {
-                console.log(e);
+                if (error === undefined|| error===null) {
+                    console.log(e);
+                } else {
+                    error(e);
+                }
+                objStore.abort();
             };
         }
     };
@@ -184,17 +189,25 @@ app.factory('getDataStoreObject',function () {
      * 
      * @param {type} objStore
      * @param {type} obj
+     * @param {type} success
+     * @param {type} error
      * @returns {undefined}
-     * 
-     */
-    DataStore.prototype.insertObject = function (objStore, obj) {
+     */    DataStore.prototype.insertObject = function (objStore, obj, success, error) {
         if (obj !== undefined && obj !== null) {
             var request = objStore.add(obj);
             request.onsuccess = function (e) {
-                console.log("sucess");
+                if (success === undefined) {
+                    console.log("sucess");
+                } else {
+                    success();
+                }
             };
             request.onerror = function (e) {
-                console.log(e);
+                if (success === undefined) {
+                    console.log(e);
+                } else {
+                    error();
+                }
             };
         }
     };
@@ -235,7 +248,6 @@ app.factory('getDataStoreObject',function () {
         request.onsuccess = onSuccess;
         request.onerror = onError;
     };
-
     /**
      * 
      * @param {type} objStore
@@ -249,7 +261,6 @@ app.factory('getDataStoreObject',function () {
             callback(array);
         });
     };
-
     /**
      *  Iterate over the items in an object store and execute the callback in resultObj
      *  for each item. This does not require the whole object store to be loaded into an
@@ -288,7 +299,6 @@ app.factory('getDataStoreObject',function () {
             console.log(e.message);
         };
     };
-
     /*
      * Wrapper around processObjects to find the max value of a property
      */
@@ -301,8 +311,6 @@ app.factory('getDataStoreObject',function () {
         };
         this.processObjects(objStore, func, resultObj);
     };
-
-
     /*
      * Wrapper around processObjects to find the max value of a property
      */
@@ -315,7 +323,6 @@ app.factory('getDataStoreObject',function () {
         };
         this.processObjects(objStore, func, resultObj);
     };
-
     DataStore.prototype.sum = function (objStore, property, resultObj) {
         var tmpResult = {};
         tmpResult[property] = 0;

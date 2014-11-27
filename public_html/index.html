@@ -38,7 +38,7 @@
             </dropdownmenuitem>
         </menu>
     </bootstrapnavbar>
-
+    <alert ng-show="successes.length>0"><span ng-repeat="success in successes"{{success}}</span><br></alert>
     <div id="chart">
         <div class="labels"></div>
     </div>
@@ -54,6 +54,8 @@
     <script src="js/db.js"></script>
     <script src="js/gcViewerDB.js"></script>
     <script src="js/gcEvent.js"></script>
+    <script src="js/angular-extensions.js"></script>
+    <script src="js/angular-bootstrap-navbar.js"></script>
     <!-- endbuild -->        
 </body>
 </html>
