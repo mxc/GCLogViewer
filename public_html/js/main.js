@@ -44,11 +44,11 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                     }
                 });
                 var count = objs.length;
-                db.updateDataStore(objs,null,null,function(e){ 
+                db.updateDataStore(objs, null, null, function (e) {
                     console.log("Aborted!");
-                },function(e){
-                    $scope.successes.push("File loaded. "+count+" lines read.");
-                    console.log("Committed "+ count +" entries");
+                }, function (e) {
+                    $scope.successes.push("File loaded. " + count + " lines read.");
+                    console.log("Committed " + count + " entries");
                 });
             };
             reader.onerror = function (e) {
@@ -62,7 +62,7 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
 
         $scope.viewCharts = function () {
             this.active = "viewCharts";
-            Chart.drawChart(db, "#chart", "#legend");
+            Chart.drawChart(db, "#chart", true);
         };
 
         $scope.dropDataStore = function () {
@@ -74,6 +74,7 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
         };
 
         $scope.openUploadDialog = function () {
+            this.active = "showFileUploadForm";
             var modalInstance = $modal.open({
                 templateUrl: 'templates/uploadfile.html',
                 controller: 'ModalInstanceController'

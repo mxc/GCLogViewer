@@ -32,15 +32,16 @@
         <menu>
             <menuitem ng-class="{active: active === 'showFileUploadForm'}" ng-click="openUploadDialog()">Load File</menuitem>
             <menuitem ng-class="{active: active === 'viewCharts'}"  ng-click="viewCharts()">View Graphs</menuitem>
+            <menuitem ng-class="{active: active === 'viewCharts'}"  ng-click="viewCharts()">Hello World</menuitem>
             <dropdownmenuitem title="Maintenance">
                 <menuitem ng-click="createDataStore()">Create Data Store</menuitem>
                 <menuitem ng-click="dropDataStore()">Drop Data Store</menuitem>
             </dropdownmenuitem>
         </menu>
     </bootstrapnavbar>
-    <alert ng-show="successes.length>0" type="success"><span ng-repeat="success in successes">{{success}}</span><br></alert>
+    <alert ng-show="successes.length > 0" type="success"><span ng-repeat="success in successes">{{success}}</span><br></alert>
+
     <div id="chart">
-        <div class="labels"></div>
     </div>
     <!-- build:js js/scripts.min.js -->
     <!-- bower:js -->

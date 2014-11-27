@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-app.factory('Chart',function () {
+app.factory('Chart', function () {
     function Chart(obj) {
         this.element = obj.element;
         this.width = obj.width === undefined ? 800 : obj.width;
@@ -117,8 +117,8 @@ app.factory('Chart',function () {
         var yscale = this.chartHeight / this.data.maxy;
         var elm = document.querySelector(this.element);
         if (elm.childNodes !== null) {
-            for (var i = 0; i < elm.childNodes.length; i++) {
-                elm.removeChild(elm.childNodes[i]);
+            while (elm.childNodes.length > 0) {
+                elm.removeChild(elm.childNodes[0]);
             }
         }
         //setup svg
@@ -154,12 +154,15 @@ app.factory('Chart',function () {
             this.renderLabels();
         }
 
-        if (this.legend !== undefined) {
+        if (this.legend) {
             this.renderLegend();
         }
     };
     Chart.prototype.renderLegend = function () {
-        var legend = document.querySelector(this.legend);
+        var elm = document.querySelector(this.element);
+        var legend = document.createElement("div");
+        legend.setAttribute("class","legend");
+        elm.appendChild(legend);
         var list = document.createElement("ul");
         legend.appendChild(list);
         this.series.forEach(function (value) {
@@ -170,12 +173,12 @@ app.factory('Chart',function () {
             list.appendChild(item);
         });
     };
-    function drawChart(db, chartNodeId, legendNodeId) {
+    function drawChart(db, chartNodeId, hasLegend) {
         db.getDataPoints(function (array) {
-            if (array==='undefined' || !Array.isArray(array) || array.length===0){
+            if (array === 'undefined' || !Array.isArray(array) || array.length === 0) {
                 var span = document.createElement("span");
                 var textNode = document.createTextNode("No records found");
-                span.setAttribute("style","color:red");
+                span.setAttribute("style", "color:red");
                 span.appendChild(textNode);
                 document.querySelector(chartNodeId).appendChild(span);
                 return;
@@ -193,7 +196,7 @@ app.factory('Chart',function () {
                     width: document.body.clientWidth,
                     height: 800,
                     data: e.data,
-                    legend: legendNodeId,
+                    legend: hasLegend,
                     title: "Total Heap",
                     id: "totalHeap"
                 });
