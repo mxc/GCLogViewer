@@ -27,3 +27,45 @@ limitations under the License.
 .nav, .pagination, .carousel, .panel-title a {
   cursor: pointer; }
 
+.modal-form div {
+  display: table;
+  width: 100%; }
+  .modal-form div p {
+    display: table-row; }
+    .modal-form div p span {
+      display: table-cell;
+      min-width: 80%; }
+      .modal-form div p span:first-child {
+        min-width: 20%; }
+      .modal-form div p span input, .modal-form div p span select {
+        max-height: 2em;
+        width: 100%; }
+
+#charts {
+  display: table;
+  margin: auto;
+  border-spacing: 20px; }
+
+.chartrow {
+  display: table-row; }
+
+.chart {
+  border: gray outset 1px;
+  border-radius: 20px;
+  box-shadow: 10px 10px 5px 5px black;
+  margin: auto;
+  display: table-cell; }
+  .chart a {
+    padding-right: 10px;
+    padding-top: 5px; }
+
+.over {
+  transform: scale(1.5); }
+
+.legend {
+  width: 190px;
+  font-weight: bold; }
+  .legend ul {
+    list-style: none; }
+    .legend ul li {
+      padding-left: 10px; }

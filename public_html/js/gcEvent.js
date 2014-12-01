@@ -15,10 +15,17 @@
  */
 
 app.factory("GCEvent",function(){
+    
+function FileData(fileName,md5Sum,host,date){
+    this.fileName=fileName;
+    this.md5Sum=md5Sum;
+    this.host=host;
+    this.date=date;
+}
 
 function GCEvent (dateStamp, timeStamp,
         youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
-        totalUsedPrior, totalUsedAfter, totalHeap, time) {
+        totalUsedPrior, totalUsedAfter, totalHeap, time,fileKey) {
     this.timeStamp = parseFloat(timeStamp);
     if (dateStamp !== null) {
         this.dateStamp = Date.parse(dateStamp);
@@ -30,9 +37,16 @@ function GCEvent (dateStamp, timeStamp,
     this.totalUsedAfter = parseInt(totalUsedAfter);
     this.totalHeap = parseInt(totalHeap);
     this.time = parseFloat(time);
+    this.fileKey = fileKey;
 };
 
-var parseLogEntry = function (line) {
+var getFileData = function(file,md5sum,host,date){
+    var fileObj = new FileData(file,md5sum,host,date);
+    return fileObj;
+};
+
+var parseLogEntry = function (line,filekey) {
+    //(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?(?:\[GC.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs\]))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs\] (\d+)K->(\d+)K\((\d+)K\)))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)](?:,?\s\d*\.\d* secs\]))?(?:\s(\d+)K->(\d+)K\((\d+)K\)(, \d*\.\d* secs]))?
     var regex = /(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?\[.*?(?:\[.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs)?\])?(?:\s(\d+)K->(\d+)K\((\d+)K\)),\s(\d+\.\d+) secs]/;
     var matches = line.match(regex);
     if (!matches) {
@@ -49,12 +63,13 @@ var parseLogEntry = function (line) {
     var time = matches[9];
     var data = new GCEvent(dateStamp, timeStamp,
             youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
-            totalUsedPrior, totalUsedAfter, totalHeap, time);
+            totalUsedPrior, totalUsedAfter, totalHeap, time,filekey);
     return data;
 };
 
 return {
-    parseLogEntry: parseLogEntry
+    parseLogEntry: parseLogEntry,
+    getFileData: getFileData
 };
 
 });

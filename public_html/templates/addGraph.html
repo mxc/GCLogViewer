@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <h4 class="modal-title">Add Graph</h4>
+</div>
+<form name="form" class="modal-form" id="addGraph">
+    <div class="modal-body">
+        <p><span ng-if="errors.length > 0"><alert type="danger"><span  ng-repeat="error in errors">{{error}}<br></span></alert></span></p>
+        <p><span><label for="host">Server*:</label></span>
+            <span><select required ng-change="updateFileList()" ng-model="host" ng-options="host for host in hosts">
+                    <option value="">-- choose host --</option>
+                </select><br></span></p>
+        <p><span><label for="date">File:</label></span>
+            <span><select required ng-model="file" ng-options="file.fileName for file in files track by file.key">
+                    <option value="">-- choose File --</option>
+                </select></span></p>
+        <p><span>Type</span><span><select ng-model="type" ng-options="type for type in types"></select></span></p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+        <input type="submit" class="btn btn-primary" value="Add Graph" ng-click="ok()">
+    </div>
+</form>

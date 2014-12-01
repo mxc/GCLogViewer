@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-app.factory('Chart', function () {
+app.factory('Charts', function () {
     function Chart(obj) {
-        this.element = obj.element;
+        this.container = obj.container;
         this.width = obj.width === undefined ? 800 : obj.width;
         this.height = obj.height === undefined ? 800 : obj.height;
         this.data = obj.data;
+        this.title = obj.title === undefined ? "No Title" : obj.title;
+        this.subTitle = obj.subTitle === undefined ? "" : obj.subTitle;
         this.series = obj.data.series;
         this.zoomRate = 1.1;
         this.currentZoomFactor = 1;
@@ -27,28 +29,36 @@ app.factory('Chart', function () {
         this.labelStrokeWidth = 2;
         this.svgns = "http://www.w3.org/2000/svg";
         this.xlinkns = 'http://www.w3.org/1999/xlink';
-        this.offset = 30;
-        this.chartWidth = this.labels ? this.width - this.offset : width;
+        this.offset = 40;
+        this.titleOffset = 60;
+        this.padding = 20;
+        //is there a axis
+        this.chartWidth = this.width - this.padding - 10;
+        this.chartWidth = this.labels ? this.chartWidth - this.offset : this.chartWidth;
+        //is there a x axis
         this.chartHeight = this.labels ? this.height - this.offset : this.height;
+        //is there a title
+        this.chartHeight = this.title ? this.chartHeight - (this.titleOffset) : this.height;
         this.id = obj.id === undefined ? Date.now() : obj.id;
-        this.title = obj.title === undefined ? "No Title" : obj.title;
     }
     ;
+
     Chart.prototype.zoom = function (event) {
         if (event.deltaY > 0) {
             this.currentZoomFactor *= this.zoomRate;
         } else {
             this.currentZoomFactor /= this.zoomRate;
         }
-        console.log(this.currentZoomFactor);
-        var svg = document.querySelector("#" + this.id);
+        var svg = document.querySelector("#" + this.id + " svg");
         svg.currentScale = this.currentZoomFactor;
         event.stopPropagation();
         event.preventDefault();
     };
+
     Chart.prototype.renderLabels = function () {
         //create the x and y axii
-        var g = document.querySelector("#" + this.id + ">.wrapper");
+        var g = document.querySelector("#" + this.id + ">svg>.wrapper");
+        //xAxis
         var xAxis = document.createElementNS(this.svgns, "line");
         xAxis.setAttribute("x1", this.offset);
         xAxis.setAttribute("y1", this.chartHeight);
@@ -56,6 +66,7 @@ app.factory('Chart', function () {
         xAxis.setAttribute("y2", this.chartHeight);
         xAxis.setAttribute("stroke", "black");
         xAxis.setAttribute("stroke-width", this.labelStrokeWidth);
+        //yAxis
         var yAxis = document.createElementNS(this.svgns, "line");
         yAxis.setAttribute("x1", this.offset);
         yAxis.setAttribute("y1", this.chartHeight);
@@ -68,7 +79,9 @@ app.factory('Chart', function () {
         //create the tick marks for axii
         var spacing = 20;
         var tickCount = parseInt(this.chartWidth / spacing); //a tick evert x "pixels"
-        var interval = parseInt(this.data.maxx / tickCount) + 1;
+        var interval = parseInt(this.data.maxx / tickCount);
+        //x labels
+        //var xheight = this.title? this.height-this.titleOffset-30: this.height;
         for (var i = 0; i <= tickCount; i++) {
             //x tick mark
             var tickx = document.createElementNS(this.svgns, "line");
@@ -78,19 +91,19 @@ app.factory('Chart', function () {
             tickx.setAttribute("y2", this.chartHeight - (this.offset / 2));
             tickx.setAttribute("stroke", "black");
             tickx.setAttribute("stroke-width", this.labelStrokeWidth);
-            //create xtick mark label
+            //create xtick label
             var tickTextX = document.createElementNS(this.svgns, "text");
             var text = document.createTextNode(formatNumber(interval * i));
             tickTextX.appendChild(text);
             tickTextX.setAttribute("x", (spacing * i) + this.offset);
-            tickTextX.setAttribute("y", this.height);
+            tickTextX.setAttribute("y", this.chartHeight + this.offset);
             tickTextX.setAttribute("style", "font-size:8pt;");
-            tickTextX.setAttribute("transform", "rotate(-45 " + ((spacing * i) + (this.offset / 2)) + " " + (this.height + this.offset / 2) + ")");
+            tickTextX.setAttribute("transform", "rotate(-45 " + ((spacing * i) + (this.offset)) + " " + (this.chartHeight + this.offset) + ")");
             g.appendChild(tickx);
             g.appendChild(tickTextX);
         }
 
-        tickCount = parseInt(this.chartHeight / spacing) + 1; //a tick evert 5 "pixels"
+        tickCount = parseInt(this.chartHeight / spacing); //a tick evert 5 "pixels"
         interval = parseInt(this.data.maxy / tickCount);
         for (var i = 0; i <= tickCount; i++) {
             //create y tick mark
@@ -112,21 +125,184 @@ app.factory('Chart', function () {
             g.appendChild(tickTextY);
         }
     };
+
+    function clearCharts() {
+        charts.forEach(function (chart) {
+            var elm = document.querySelector("#" + chart.id);
+            elm.parentNode.removeChild(elm);
+        });
+        charts.length = 0;
+    }
+    ;
+
+    function zoom(ratio) {
+        var svgs = document.querySelectorAll("svg");
+        for (var i = 0; i < svgs.length; i++) {
+            svgs[i].currentScale = ratio;
+        }
+        ;
+    }
+    ;
+
+    function isAncestor(target, source) {
+        while (source !== null && source !== document.body) {
+            if (source.parentElement === target) {
+                return true;
+            } else {
+                source = source.parentElement;
+            }
+        }
+        return false;
+    }
+
+    function setPointerEvents(elms, enabled) {
+        for (var i = 0; i < elms.length; i++) {
+            if (enabled) {
+                elms[i].classList.remove("disable-pointer-events");
+            } else {
+                elms[i].classList.add("disable-pointer-events");
+            }
+        }
+        ;
+    }
+
+    function findSVGs(elm) {
+        while (elm !== document.body) {
+            if (elm.classList.contains("chart-table")) {
+                console.log("found = " + elm.id);
+                elm = document.querySelector("#" + elm.id);
+                console.log("found=" + elm.querySelectorAll("svg").length);
+                return elm.querySelectorAll("svg");
+            } else {
+                console.log(elm.id);
+                elm = elm.parentElement;
+            }
+        }
+        console.log("not found");
+        return undefined;
+    }
+
+    function calcWidth(elm) {
+        var width = elm.style === undefined ?
+                undefined :
+                elm.style.width;
+        if (width === "" || width === undefined || width === null) {
+            width = document.body.offsetWidth - 80;
+        } else if (width.indexOf("%") !== -1) {
+            width = document.body.offsetWidth * parseFloat(width) / 100.0;
+        }
+        return width;
+    }
+
+    function resizeCharts(svgs, width) {
+        if (svgs !== undefined && svgs !== null) {
+            for (var i = 0; i < svgs.length; i++) {
+                svgs[i].setAttribute("width", (width / svgs.length));
+            }
+        }
+    }
+
     Chart.prototype.render = function () {
         var xscale = this.chartWidth / this.data.maxx;
         var yscale = this.chartHeight / this.data.maxy;
-        var elm = document.querySelector(this.element);
-        if (elm.childNodes !== null) {
-            while (elm.childNodes.length > 0) {
-                elm.removeChild(elm.childNodes[0]);
+        var elm = document.querySelector(this.container);
+        //setup new table, row and cell to contain chart
+        var table = document.createElement("div");
+        table.setAttribute("id", "chart-table-" + this.id);
+        table.classList.add("chart-table");
+
+        var row = document.createElement("div");
+        row.setAttribute("class", "chart-row");
+        row.setAttribute("id", "chart-row-" + this.id);
+
+        row.addEventListener("dragenter", function (e) {
+            var elms = this.children;
+            console.log(e.dataTransfer.getData("text"));
+            if (isAncestor(this, document.querySelector(e.dataTransfer.getData("text")))) {
+                setPointerEvents(elms, true);
+            } else {
+                setPointerEvents(elms, false);
             }
-        }
+            ;
+            //this.classList.add("over");
+        });
+
+        row.addEventListener("dragleave", function (e) {
+            //this.classList.remove("over");
+            var elms = this.children;
+            setPointerEvents(elms, true);
+        });
+
+        row.addEventListener("drop", function (e) {
+            var elm = document.querySelector("#" + e.dataTransfer.getData("text"));
+            var source = elm.parentElement;
+            source.removeChild(elm);
+            this.appendChild(elm);
+            var width = calcWidth(elm.parentElement.parentElement);
+            //resize graphs in target table
+            var svgs = findSVGs(this);
+            resizeCharts(svgs, width);
+            svgs.length = 0;
+            //resize graphs in source table
+            //requery to get the children of original source
+            resizeCharts(source.querySelectorAll("svg"), width);
+        });
+
+        row.addEventListener("dragover", function (e) {
+            e.preventDefault();
+        });
+        table.appendChild(row);
+        elm.appendChild(table);
+        //setup div that 
+        var chart = document.createElement("div");
+        row.appendChild(chart);
+
+        chart.setAttribute("id", this.id);
+        chart.setAttribute("class", "chart");
+
+        //setup close button for chart
+        var close = document.createElement("a");
+        close.setAttribute("href", "#");
+        close.setAttribute("class", "close");
+        close.appendChild(document.createTextNode("\u00D7"));
+        close.addEventListener("click", function (e) {
+            e.preventDefault();
+            var tmpNode = this.parentElement.parentElement;
+            var width = calcWidth(tmpNode);
+            var svgs = tmpNode.querySelectorAll("svg");
+            svgs = _.toArray(svgs);
+            var index = svgs.indexOf(this.parentElement);
+            svgs.splice(index, 1);
+            resizeCharts(svgs, width);
+            tmpNode.removeChild(this.parentElement);
+            return false;
+        });
+        chart.appendChild(close);
+        var move = document.createElement("a");
+        move.setAttribute("href", "#");
+        move.setAttribute("class", "close");
+        move.appendChild(document.createTextNode("\u2725"));
+        move.setAttribute("draggable", true);
+        move.addEventListener("click", function (e) {
+            e.preventDefault();
+        });
+        move.addEventListener("dragstart", function (e) {
+            this.style.opacity = 0.4;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.setData('text', this.parentElement.id);
+        });
+        move.addEventListener("dragend", function (e) {
+            this.style.opacity = 1;
+        });
+        chart.appendChild(move);
         //setup svg
         var svg = document.createElementNS(this.svgns, "svg");
-        elm.appendChild(svg);
+        chart.appendChild(svg);
         svg.setAttributeNS(null, "width", this.width);
         svg.setAttributeNS(null, "height", this.height);
-        svg.setAttributeNS(null, "id", this.id);
+        svg.setAttributeNS(null, "viewBox", "0 0 " + this.width + " " + this.height);
+        //svg.setAttributeNS(null, "class", this.id);
         var gwrapper = document.createElementNS(this.svgns, "g");
         gwrapper.setAttribute("class", "wrapper");
         var g = document.createElementNS(this.svgns, "g");
@@ -154,14 +330,33 @@ app.factory('Chart', function () {
             this.renderLabels();
         }
 
+        if (this.title) {
+            this.renderTitle();
+        }
+
         if (this.legend) {
             this.renderLegend();
         }
     };
+
+    Chart.prototype.renderTitle = function () {
+        var svg = document.querySelector("#" + this.id + " svg");
+        var text = document.createElementNS(this.svgns, "text");
+        text.setAttribute("font-family", "Arial");
+        text.setAttribute("font-size", "18");
+        text.setAttribute("fill", "black");
+        var textNode = document.createTextNode(this.title);
+        text.appendChild(textNode);
+        svg.appendChild(text);
+        text.setAttributeNS(null, "x", (this.width / 2) - this.title.length);
+        text.setAttributeNS(null, "y", 18);
+        svg.children[0].setAttributeNS(null, "transform", "translate(0 " + (this.titleOffset) + ")");
+    };
+
     Chart.prototype.renderLegend = function () {
-        var elm = document.querySelector(this.element);
+        var elm = document.querySelector("#" + this.id);
         var legend = document.createElement("div");
-        legend.setAttribute("class","legend");
+        legend.setAttribute("class", "legend");
         elm.appendChild(legend);
         var list = document.createElement("ul");
         legend.appendChild(list);
@@ -173,14 +368,18 @@ app.factory('Chart', function () {
             list.appendChild(item);
         });
     };
-    function drawChart(db, chartNodeId, hasLegend) {
-        db.getDataPoints(function (array) {
+
+    var charts = [];
+
+    function drawChart(db, containerId, data, hasLegend) {
+        db.findAll("gcEntry", data.index, data.key, function (e) {
+            var array = e;
             if (array === 'undefined' || !Array.isArray(array) || array.length === 0) {
                 var span = document.createElement("span");
                 var textNode = document.createTextNode("No records found");
                 span.setAttribute("style", "color:red");
                 span.appendChild(textNode);
-                document.querySelector(chartNodeId).appendChild(span);
+                document.querySelector(containerId).appendChild(span);
                 return;
             }
             var worker = new Worker('js/worker.js');
@@ -192,20 +391,23 @@ app.factory('Chart', function () {
             };
             worker.addEventListener('message', function (e) {
                 var chart = new Chart({
-                    element: chartNodeId,
-                    width: document.body.clientWidth,
-                    height: 800,
+                    container: containerId,
+                    width: (document.body.clientWidth - 80),
+                    height: 700,
                     data: e.data,
                     legend: hasLegend,
-                    title: "Total Heap",
-                    id: "totalHeap"
+                    subTitle: "Total Heap",
+                    id: "chart" + charts.length,
+                    title: data.host + " - " + data.file
                 });
                 chart.render();
+                charts.push(chart);
             });
             worker.postMessage(array);
         });
     }
     ;
+
     function formatNumber(text) {
         text = text.toString();
         var i = text.length;
@@ -225,7 +427,8 @@ app.factory('Chart', function () {
     }
 
     return {
-        //Chart: Chart,
-        drawChart: drawChart
-    }
+        drawChart: drawChart,
+        clear: clearCharts,
+        zoom: zoom
+    };
 });

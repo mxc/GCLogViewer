@@ -2,20 +2,18 @@
     <button type="button" class="close" data-dismiss="modal" ng-click="cancel()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
     <h4 class="modal-title">Upload Log File</h4>
 </div>
-<form name="form">
-<div class="modal-body">
-    <table>
-        <tr ng-if="errors.length>0"><td colspan="2"><alert type="danger"><span  ng-repeat="error in errors">{{error}}<br></span></alert></td></tr>
-        <tr><td><label for="host">Server:</label></td>
-            <td><input id="host" type="text" ng-model="host" name="host" required></td></tr>
-        <tr><td><label for="date">Log date (if -XX:DateStamp not set):</label></td>
-            <td><input id="date" type="date" data-gc-model-date name="date" ></td></tr>
-        <tr><td></td><td><span class="btn btn-default btn-file"><input type="file" data-gc-model-file name="file" required></span></td></tr>
-    </table>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
-    <input type="submit" class="btn btn-primary" value="Process File" ng-click="ok()">
-</div>
+<form name="form" class="modal-form" id="loadfile">
+    <div class="modal-body">
+        <p><span ng-if="errors.length > 0"><alert type="danger"><span  ng-repeat="error in errors">{{error}}<br></span></alert></span></p>
+        <p><span><label for="host">Server*:</label></span>
+            <span><input id="host" type="text" ng-model="host" name="host" required></span></p>
+        <p><span><label for="date">Log date:</label></span>
+                <span><input id="date" type="date" data-gc-model-date name="date"></span></p>
+        <p><span>File:</span><span class="btn btn-default btn-file"><input type="file" data-gc-model-file name="file" required></span></p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>
+        <input type="submit" class="btn btn-primary" value="Process File" ng-click="ok()">
+    </div>
 </form>
 

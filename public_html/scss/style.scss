@@ -32,6 +32,71 @@ limitations under the License.
 }
 
 body{
-  
+
 }
 
+.modal-form {
+    div {
+        display:table;
+        width:100%;
+        p {
+            display:table-row;
+            span{
+                display:table-cell;
+                min-width:80%;
+                &:first-child{
+                    min-width:20%;
+                }
+                input,select {
+                    max-height:2em;
+                    width:100%;
+                }
+            }
+        }
+    }
+}
+
+#charts{
+    display:table;
+    margin:auto;    
+    border-spacing: 20px;
+}
+
+.chart-table{
+   display: table;
+}
+
+.chart-row {
+    display: table-row;
+}
+
+.chart {
+    border: gray outset 1px;
+    border-radius: 20px;
+    box-shadow: 10px 10px 5px 5px black;
+    margin:auto;
+    display: table-cell;
+    a {
+        padding-right:10px;
+        padding-top:5px;
+    };
+}
+
+.over{
+    transform: scale(1.5);
+}
+
+.legend {
+    width:190px;
+    font-weight: bold;
+    ul {
+        list-style: none;
+        li {
+            padding-left:10px;
+        }
+    }
+}
+
+.disable-pointer-events{
+    pointer-events:none;
+};

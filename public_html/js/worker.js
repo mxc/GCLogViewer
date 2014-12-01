@@ -20,10 +20,10 @@
     });
     function getChartObject(array) {
         var propBag = {
-            minHeap: 99999999,
-            maxHeap: 0,
-            minTimeStamp: 9999999999,
-            maxTimeStamp: 0,
+            miny: 99999999,
+            maxy: 0,
+            minx: 9999999999,
+            maxx: 0,
             series: [{
                     name: 'Young Gen Used',
                     colour: 'orange',
@@ -66,12 +66,19 @@
             propBag.series[1].data.push({x: value.timeStamp, y: isNaN(value.totalYoungGen) ? 0 : value.totalYoungGen});
             propBag.series[2].data.push({x: value.timeStamp, y: calcOldGenUsed(value)});
             propBag.series[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
-            propBag.miny = value.totalHeap < propBag.minHeap ? value.totalHeap : propBag.minHeap;
-            propBag.maxy = value.totalHeap > propBag.maxHeap ? value.totalHeap : propBag.maxHeap;
-            propBag.minx = value.timeStamp < propBag.minTimeStamp ? value.timeStamp : propBag.minTimeStamp;
-            propBag.maxx = value.timeStamp > propBag.maxTimeStamp ? value.timeStamp : propBag.maxTimeStamp;
+            propBag.miny = value.totalHeap < propBag.miny ? value.totalHeap : propBag.miny;
+            propBag.maxy = value.totalHeap > propBag.maxy ? value.totalHeap : propBag.maxy;
+            propBag.minx = value.timeStamp < propBag.minx ? value.timeStamp : propBag.minx;
+            propBag.maxx = value.timeStamp > propBag.maxx ? value.timeStamp : propBag.maxx;
+            for (var prop in value) {
+                if (value.hasOwnProperty(prop)) {
+                    if (prop!=="dateStamp" && prop!=="fileKey"  && isNaN(value[prop])) {
+                        console.log(prop);
+                        console.log(value);
+                    }
+                }
+            }
         });
-        console.log(propBag);
         self.postMessage(propBag);
     }
 
