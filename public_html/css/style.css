@@ -46,7 +46,10 @@ limitations under the License.
   margin: auto;
   border-spacing: 20px; }
 
-.chartrow {
+.chart-table {
+  display: table; }
+
+.chart-row {
   display: table-row; }
 
 .chart {
@@ -69,3 +72,6 @@ limitations under the License.
     list-style: none; }
     .legend ul li {
       padding-left: 10px; }
+
+.disable-pointer-events {
+  pointer-events: none; }

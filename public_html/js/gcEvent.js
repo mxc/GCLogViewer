@@ -47,11 +47,12 @@ var getFileData = function(file,md5sum,host,date){
 
 var parseLogEntry = function (line,filekey) {
     //(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?(?:\[GC.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs\]))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs\] (\d+)K->(\d+)K\((\d+)K\)))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)](?:,?\s\d*\.\d* secs\]))?(?:\s(\d+)K->(\d+)K\((\d+)K\)(, \d*\.\d* secs]))?
-    var regex = /(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?\[.*?(?:\[.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs)?\])?(?:\s(\d+)K->(\d+)K\((\d+)K\)),\s(\d+\.\d+) secs]/;
+    var regex = /(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d*\.\d*:\s)?(?:\[GC(?:d+\.d+).*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s(\d*\.\d*) secs\]))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)(?:,?\s\d*\.\d* secs\] (\d+)K->(\d+)K\((\d+)K\)))?(?:\[CMS.*?(\d+)K->(\d+)K\((\d+)K\)](?:,\s\(d*\.\d*) secs\])?(?:\s(\d+)K->(\d+)K\((\d+)K\)(?:, (\d*\.\d*) secs]))?/;
     var matches = line.match(regex);
     if (!matches) {
         return;
     }
+    console.log(matches);
     var dateStamp = matches[1];
     var timeStamp = matches[2];
     var youngGenUsedPrior = matches[3];
