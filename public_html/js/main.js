@@ -26,7 +26,7 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
         $scope.successes = [];
         $scope.errors = [];
 
-        $scope.zoom=function(ratio){
+        $scope.zoom = function (ratio) {
             Charts.zoom(ratio);
         }
 
@@ -61,14 +61,32 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                     }
                     var objs = [];
                     var lines = reader.result.split(/\r\n|\r|\n/g);
+                    var newString = "";
+
                     lines.forEach(function (value, index, array) {
-                        var obj = GCEvent.parseLogEntry(value, hash.toString());
+                        newString += value.replace(/(^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*\+\d*:\s|^\d+\.\d+:\s)/, "__$1") + " ";
+                    });
+
+                    newString = newString.split(/__/);
+                    newString.forEach(function (value, index, array) {
+                        var obj = GCEvent.parseLogEntry(value, hash.toString(), false);
                         if (obj !== undefined) {
                             objs.push(obj);
                         }
                     });
+                    //if no objects have been imported the file could be in a format
+                    //that does not have PrintGCDetails enabled.
                     var count = objs.length;
-
+                    if (count === 0) {
+                        newString.forEach(function (value, index, array) {
+                            var obj = GCEvent.parseLogEntry(value, hash.toString(), true);
+                            if (obj !== undefined) {
+                                objs.push(obj);
+                            }
+                        });
+                    }
+                    count=objs.length;
+                    
                     var fileData = GCEvent.getFileData(file.name, hash.toString(), host, date);
                     db.updateDataStore("fileData", fileData, function (e) {
                         db.updateDataStore('gcEntry', objs, null, null, function (e) {
@@ -127,8 +145,8 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                 console.info('Modal dismissed ');
             });
         };
-        
-        $scope.clearCharts=function(){
+
+        $scope.clearCharts = function () {
             Charts.clear();
         }
     }]);
@@ -167,7 +185,7 @@ app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', 
             if ($scope.errors.length > 0) {
                 return;
             } else {
-                $modalInstance.close({key: $scope.file.key, file:$scope.file.fileName, host: $scope.host});
+                $modalInstance.close({key: $scope.file.key, file: $scope.file.fileName, host: $scope.host});
             }
         };
 

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--
+Copyright 2014 mark.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+    <head>
+        <title>Regular Expression Tester</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="bower_components/underscore/underscore.js"></script>        
+        <script>
+            window.onload = function () {
+                if (document.readyState === "complete") {
+                    var regex = document.querySelector("#regex");
+                    var text = document.querySelector("#target");
+                    var output = document.querySelector("#results");
+                    var display = function (e) {
+                        var string = text.innerHTML;
+                        string = string.replace(/\n?\r?\n?/gm,"");
+                        if (string !== undefined && string !== null && string !== "") {
+                            output.innerHTML = "";
+                            var reg = /<div>(.*?)<\/div>/gm;
+                            //var result;
+                            var results = [];
+                            var result;
+                            while ((result = reg.exec(string)) !== null) {
+                                if (result===undefined){
+                                    continue;
+                                }
+                                result=result[1].replace(/<.*>/gm,"");
+                                if (result === "") {
+                                    continue;
+                                }
+                                results.push(_.unescape(result));
+                            }
+                            try {
+                                var inputReg = new RegExp(regex.textContent);
+                                results.forEach(function (value, index) {
+                                    var matches = inputReg.exec(value);
+                                    if (matches) {
+                                        output.innerHTML += "<p>";
+                                        matches.forEach(function (value, index) {
+                                            output.innerHTML += index + ") " + value + "<br>";
+                                        });
+                                    }
+                                    output.innerHTML += "</p>";
+                                });
+                            } catch (e) {
+                                console.log("invalid regular expression");
+                                output.innerHTML = "invalid regular expression";
+                            }
+                        }
+                        if (e.srcElement === regex) {
+                            var pos = document.getSelection().baseOffset;
+                            //regex.innerHTML = colorise(regex.innerHTML.replace(/(<[^>]+>)/ig, ""), pos);
+                            document.querySelector("#regexwrapper > .highlight").innerHTML = colorise(regex.textContent, pos);
+                        }
+                    }
+                    regex.addEventListener("keypress", display);
+                    regex.addEventListener("input", display);
+                    regex.addEventListener("paste", function (e) {
+                        this.innerHTML +=
+                                e.clipboardData.getData('text/plain').replace(/<[^>]>/ig, "");
+                        display(e);
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    });
+                    regex.addEventListener("click", display);
+                    text.addEventListener("keypress", display);
+                    text.addEventListener("paste", function (e) {
+                        var pastedText = e.clipboardData.getData('text/plain').split("\n");
+                        pastedText.forEach(function (value) {
+                            text.innerHTML += "<div>" +
+                                    value.replace(/<[^>]>/ig, "") 
+                                    +
+                                    "</div>";
+                        });
+                        display(e);
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    });
+                    text.addEventListener("click", display);
+                    text.addEventListener("input", display);
+                }
+            }
+
+            function colorise(text, pos) {
+                var i = 0;
+                var regexStr = />|</g;
+                //replace > < with html entities
+                var escapedString = text.replace(regexStr, function (x, j) {
+                    return x === ">" ? '&gt;' : '&lt;';
+                });
+                var parens = [], indices = [], obj = [];
+                escapedString.replace(/([()])/g, function (match, x, idx) {
+                    indices.push(idx);
+                    if (x === "(") {
+                        ++i;
+                        parens.push(idx);
+                    }
+                    obj[idx] = {selected: false, type: x, depth: i, idx: idx, pair: -1};
+                    console.log("idx=" + idx + " pos=" + pos);
+                    if (idx + 1 === pos) {
+                        obj[idx].selected = true;
+                    }
+                    if (x === ")") {
+                        if (parens.length > 0) {
+                            var p = parens.pop();
+                            obj[idx].pair = p;
+                            if (obj[p].selected) {
+                                obj[idx].selected = true;
+                            }
+                            obj[p].pair = idx;
+                            if (obj[idx].selected) {
+                                obj[p].selected = true;
+                            }
+                        }
+                        --i;
+                    }
+                });
+                var result = escapedString;
+                if (indices.length !== 0) {
+                    result = "";
+                    indices.forEach(function (value, index) {
+                        if (index === 0) {
+                            result = escapedString.substr(0, value);
+                        } else {
+                            var prevPos = indices[index - 1] + 1;
+                            if (prevPos === undefined) {
+                                prevPos = 0;
+                            }
+                            result += escapedString.substr(prevPos, value - prevPos);
+                        }
+                        result += "<span class='" + (obj[value].pair === -1 ? "unmatched " : "level-" + (obj[value].depth % 8 > 0 ? obj[value].depth % 8 : 1)) +
+                                (obj[value].selected ? " current" : "") + "'>" + obj[value].type + "</span>";
+                    });
+                    result += escapedString.substr(indices[indices.length - 1] + 1);
+                }
+                return result;
+            }
+
+        </script>
+        <style>
+            .wrapper{
+                position:relative;
+            }
+
+            .inputtext, .wrapper > .highlight{
+                background: transparent;
+                position: absolute;
+                top:0;
+                left:0;
+                margin: 0;
+                border: 0;
+                padding: 0;
+                width:100%;
+                overflow: scroll;
+            }
+
+            #regexwrapper > div {
+                height:100px;
+            }
+
+            #targetwrapper > div{
+                height:300px;
+            }
+
+            .inputtext{
+                z-index: 100;
+                position: relative;
+            }
+
+            .wrapper {
+                position:relative;
+            }
+
+            .level-1{
+                background-color: #add8e6;
+            }
+
+            .level-2{
+                background-color: #02e842;
+            }
+
+            .level-3{
+                background-color: #fffa30;
+            }
+
+            .level-4{
+                background-color: #e8be19;
+            }
+
+            .level-5{
+                background-color: #b4ff02;
+            }
+
+            .level-6{
+                background-color: #88ff28;
+            }
+
+            .level-7{
+                background-color: #ff7c30;
+            }
+
+            .level-8{
+                background-color: #19e89e;
+            }
+
+            .unmatched {
+                background-color: red;
+            }
+            .current{
+                background-color: purple;
+            }
+        </style>
+    </head>
+    <body>
+        <label for="regex">Regular Expression</label>
+        <div id="regexwrapper" class='wrapper'>
+            <div class='highlight'></div>
+            <div contenteditable="true" id="regex" class="inputtext"></div>
+        </div>
+        <br/>
+        <label>Text</label>
+        <br/>
+        <div id="targetwrapper" class='wrapper'>
+            <div class='highlight'></div>
+            <div contenteditable="true" id="target" class="inputtext" ></div>
+        </div>
+        <hr>
+        <label>Results</label>
+        <div  id="results" class="inputtext"></div>
+    </body>
+</html>

@@ -171,33 +171,54 @@ app.factory('Charts', function () {
             if (elm.classList.contains("chart-table")) {
                 console.log("found = " + elm.id);
                 elm = document.querySelector("#" + elm.id);
-                console.log("found=" + elm.querySelectorAll("svg").length);
+                //console.log("found=" + elm.querySelectorAll("svg").length);
                 return elm.querySelectorAll("svg");
             } else {
-                console.log(elm.id);
+                //console.log(elm.id);
                 elm = elm.parentElement;
             }
         }
-        console.log("not found");
+        //console.log("not found");
         return undefined;
     }
-
+    
+    //Calculate the width for the chart.
+    //If there is a width style read that in. Otherwise set the width to
+    //document.offsetWidth less 80 pixels;
+    //If the style width is set, see if it is a percentage figure. If so then
+    //calculate the svg width as a percentage of the body.offsetWidth
     function calcWidth(elm) {
         var width = elm.style === undefined ?
                 undefined :
                 elm.style.width;
         if (width === "" || width === undefined || width === null) {
-            width = document.body.offsetWidth - 80;
+            width = getDefaultWidth();
         } else if (width.indexOf("%") !== -1) {
             width = document.body.offsetWidth * parseFloat(width) / 100.0;
         }
         return width;
     }
+    
+    function calcHeight(elm) {
+        var height = elm.style === undefined ?
+                undefined :
+                elm.style.height;
+        if (height === "" || height === undefined || height === null) {
+            height = getDefaultHeight();
+        } else if (height.indexOf("%") !== -1) {
+            height = document.body.offsetHeight * parseFloat(height) / 100.0;
+        }
+        return height;
+    }
+    
 
-    function resizeCharts(svgs, width) {
+    //Recalc the chart widths when a new chart is dropped into the target
+    //row. Also recalc the chart heigths
+    function resizeCharts(svgs, width,height) {
         if (svgs !== undefined && svgs !== null) {
             for (var i = 0; i < svgs.length; i++) {
                 svgs[i].setAttribute("width", (width / svgs.length));
+                svgs[i].setAttribute("height", (height / svgs.length));
             }
         }
     }
@@ -217,8 +238,7 @@ app.factory('Charts', function () {
 
         row.addEventListener("dragenter", function (e) {
             var elms = this.children;
-            console.log(e.dataTransfer.getData("text"));
-            if (isAncestor(this, document.querySelector(e.dataTransfer.getData("text")))) {
+            if (e.dataTransfer.getData("text")==="" || isAncestor(this, document.querySelector(e.dataTransfer.getData("text")))) {
                 setPointerEvents(elms, true);
             } else {
                 setPointerEvents(elms, false);
@@ -239,13 +259,14 @@ app.factory('Charts', function () {
             source.removeChild(elm);
             this.appendChild(elm);
             var width = calcWidth(elm.parentElement.parentElement);
+            var height = calcHeight(elm.parentElement.parentElement);
             //resize graphs in target table
             var svgs = findSVGs(this);
-            resizeCharts(svgs, width);
+            resizeCharts(svgs, width,height);
             svgs.length = 0;
             //resize graphs in source table
             //requery to get the children of original source
-            resizeCharts(source.querySelectorAll("svg"), width);
+            resizeCharts(source.querySelectorAll("svg"), width,height);
         });
 
         row.addEventListener("dragover", function (e) {
@@ -269,11 +290,12 @@ app.factory('Charts', function () {
             e.preventDefault();
             var tmpNode = this.parentElement.parentElement;
             var width = calcWidth(tmpNode);
+            var height = calcHeight(tmpNode);
             var svgs = tmpNode.querySelectorAll("svg");
             svgs = _.toArray(svgs);
             var index = svgs.indexOf(this.parentElement);
             svgs.splice(index, 1);
-            resizeCharts(svgs, width);
+            resizeCharts(svgs, width,height);
             tmpNode.removeChild(this.parentElement);
             return false;
         });
@@ -392,8 +414,8 @@ app.factory('Charts', function () {
             worker.addEventListener('message', function (e) {
                 var chart = new Chart({
                     container: containerId,
-                    width: (document.body.clientWidth - 80),
-                    height: 700,
+                    width: getDefaultWidth(),
+                    height: getDefaultHeight(),
                     data: e.data,
                     legend: hasLegend,
                     subTitle: "Total Heap",
@@ -405,8 +427,15 @@ app.factory('Charts', function () {
             });
             worker.postMessage(array);
         });
+    };
+    
+    function getDefaultWidth(){
+            return document.body.clientWidth - 80;        
     }
-    ;
+    
+    function getDefaultHeight(){
+        return 700;
+    }
 
     function formatNumber(text) {
         text = text.toString();

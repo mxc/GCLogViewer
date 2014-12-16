@@ -50,14 +50,18 @@ limitations under the License.
   display: table; }
 
 .chart-row {
-  display: table-row; }
+  display: table-row; 
+  height: 100px;
+}
 
 .chart {
   border: gray outset 1px;
   border-radius: 20px;
   box-shadow: 10px 10px 5px 5px black;
   margin: auto;
-  display: table-cell; }
+  display: table-cell; 
+  height: 100px !important;
+}
   .chart a {
     padding-right: 10px;
     padding-top: 5px; }
