@@ -116,7 +116,9 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
 
             modalInstance.result.then(function (data) {
                 data.index = "fileKey";
-                Charts.drawChart(db, "#charts", data, true);
+                var charts = document.getElementsByClassName("charts");
+                var id = charts[charts.length-1].getAttribute("id");
+                Charts.drawChart(db, id, data, true);
             }, function () {
                 console.info('Modal dismissed ');
             });

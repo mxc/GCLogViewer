@@ -46,7 +46,7 @@ app.factory('GCViewerDB', ['db', function (db) {
                         },
                         indices: [
                             ['filename', 'fileName', {unique: true}],
-                            ['md5sum', 'md5Sum', {unique: true}],
+                            ['md5sum', 'md5Sum', {unique: true}]
                         ]
                     }
                 }];

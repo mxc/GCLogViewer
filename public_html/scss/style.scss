@@ -56,18 +56,22 @@ body{
     }
 }
 
-#charts{
+.charts{
     display:table;
     margin:auto;    
     border-spacing: 20px;
+    width:90%;
 }
 
 .chart-table{
    display: table;
+   width:100%;
+   margin-top:20px;
 }
 
 .chart-row {
     display: table-row;
+    width:100%;
 }
 
 .chart {
@@ -93,10 +97,38 @@ body{
         list-style: none;
         li {
             padding-left:10px;
+            display: inline;
         }
     }
 }
 
+.highlight{
+    background-color: green;
+    opacity:0.3;
+}
+
 .disable-pointer-events{
     pointer-events:none;
+}
+
+.clone{
+    //background-color: blue;
+    z-index:10;
+}
+
+
+.hide{
+    display:none;
+}
+
+.clickable{
+    cursor: pointer;
+}
+
+.nomove {
+    position:relative;
+}
+
+.dummy{
+    display: table-cell;
 }

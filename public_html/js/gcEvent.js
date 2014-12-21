@@ -39,7 +39,6 @@ app.factory("GCEvent", function () {
         this.time = parseFloat(time);
         this.fileKey = fileKey;
     }
-    ;
 
     var getFileData = function (file, md5sum, host, date) {
         var fileObj = new FileData(file, md5sum, host, date);

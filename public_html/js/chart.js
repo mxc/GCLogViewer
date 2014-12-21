@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 app.factory('Charts', function () {
+
+    /*
+     * Constructor function
+     */
     function Chart(obj) {
         this.container = obj.container;
         this.width = obj.width === undefined ? 800 : obj.width;
@@ -42,6 +46,66 @@ app.factory('Charts', function () {
         this.id = obj.id === undefined ? Date.now() : obj.id;
     }
     ;
+    var rowCounter = 0;
+    var charts = {};
+    var currentDraggedChart;
+    function clearCharts() {
+        for (var key in charts) {
+            var elm = document.querySelector("#" + charts[key].id);
+            elm.parentNode.removeChild(elm);
+        }
+        charts = {};
+        rowCounter = 0;
+    }
+
+    function createNewTableRow(container) {
+        var table = document.createElement("div");
+        table.setAttribute("id", "chart-table-" + rowCounter);
+        table.classList.add("chart-table");
+        var row = document.createElement("div");
+        row.setAttribute("class", "chart-row");
+        row.setAttribute("id", "chart-row-" + rowCounter);
+        rowCounter++;
+        table.appendChild(row);
+        container.appendChild(table);
+        return row;
+    }
+
+
+    function cloneRow(row) {
+        var rowClone = document.createElement("div");
+        setPosition(row, rowClone);
+        rowClone.classList.add("hide");
+        rowClone.classList.add("clone");
+        rowClone.setAttribute("id", row.getAttribute("id") + "-clone");
+        row.parentElement.appendChild(rowClone);
+        return rowClone;
+    }
+
+    function setPosition(row, rowClone) {
+        var left = row.offsetLeft - row.scrollLeft;
+        var top = row.offsetTop - row.scrollTop;
+        var width = row.offsetWidth;
+        var height = row.offsetHeight;
+        rowClone.setAttribute("style", "position:absolute; top:" + top + "px; left:" + left + "px; height:" + height + "px; width:" + width + "px;");
+    }
+
+//    //find the nearest ancestor svg element.
+//    function findSVGs(elm) {
+//        while (elm !== document.body) {
+//            if (elm.classList.contains("chart-table")) {
+//                //console.log("found = " + elm.id);
+//                elm = document.querySelector("#" + elm.id);
+//                //console.log("found=" + elm.querySelectorAll("svg").length);
+//                return elm.querySelectorAll("svg");
+//            } else {
+//                //console.log(elm.id);
+//                elm = elm.parentElement;
+//            }
+//        }
+//        //console.log("not found");
+//        return undefined;
+//    }
 
     Chart.prototype.zoom = function (event) {
         if (event.deltaY > 0) {
@@ -54,7 +118,6 @@ app.factory('Charts', function () {
         event.stopPropagation();
         event.preventDefault();
     };
-
     Chart.prototype.renderLabels = function () {
         //create the x and y axii
         var g = document.querySelector("#" + this.id + ">svg>.wrapper");
@@ -93,7 +156,7 @@ app.factory('Charts', function () {
             tickx.setAttribute("stroke-width", this.labelStrokeWidth);
             //create xtick label
             var tickTextX = document.createElementNS(this.svgns, "text");
-            var text = document.createTextNode(formatNumber(interval * i));
+            var text = document.createTextNode(this.formatNumber(interval * i));
             tickTextX.appendChild(text);
             tickTextX.setAttribute("x", (spacing * i) + this.offset);
             tickTextX.setAttribute("y", this.chartHeight + this.offset);
@@ -117,7 +180,7 @@ app.factory('Charts', function () {
             g.appendChild(ticky);
             //create y tick mark label
             var tickTextY = document.createElementNS(this.svgns, "text");
-            var text = document.createTextNode(formatNumber(interval * i));
+            var text = document.createTextNode(this.formatNumber(interval * i));
             tickTextY.appendChild(text);
             tickTextY.setAttribute("x", 0);
             tickTextY.setAttribute("style", "font-size:8pt;");
@@ -125,69 +188,54 @@ app.factory('Charts', function () {
             g.appendChild(tickTextY);
         }
     };
-
-    function clearCharts() {
-        charts.forEach(function (chart) {
-            var elm = document.querySelector("#" + chart.id);
-            elm.parentNode.removeChild(elm);
-        });
-        charts.length = 0;
-    }
-    ;
-
-    function zoom(ratio) {
+    function zoomAll(ratio) {
         var svgs = document.querySelectorAll("svg");
         for (var i = 0; i < svgs.length; i++) {
             svgs[i].currentScale = ratio;
         }
-        ;
-    }
-    ;
-
-    function isAncestor(target, source) {
-        while (source !== null && source !== document.body) {
-            if (source.parentElement === target) {
-                return true;
-            } else {
-                source = source.parentElement;
-            }
-        }
-        return false;
     }
 
-    function setPointerEvents(elms, enabled) {
-        for (var i = 0; i < elms.length; i++) {
-            if (enabled) {
-                elms[i].classList.remove("disable-pointer-events");
-            } else {
-                elms[i].classList.add("disable-pointer-events");
-            }
-        }
-        ;
-    }
 
-    function findSVGs(elm) {
-        while (elm !== document.body) {
-            if (elm.classList.contains("chart-table")) {
-                console.log("found = " + elm.id);
-                elm = document.querySelector("#" + elm.id);
-                //console.log("found=" + elm.querySelectorAll("svg").length);
-                return elm.querySelectorAll("svg");
-            } else {
-                //console.log(elm.id);
-                elm = elm.parentElement;
-            }
-        }
-        //console.log("not found");
-        return undefined;
-    }
-    
-    //Calculate the width for the chart.
-    //If there is a width style read that in. Otherwise set the width to
-    //document.offsetWidth less 80 pixels;
-    //If the style width is set, see if it is a percentage figure. If so then
-    //calculate the svg width as a percentage of the body.offsetWidth
-    function calcWidth(elm) {
+//    function isAncestor(source, target) {
+//        while (source !== null && source !== document.body) {
+//            if (source.parentElement === target) {
+//                return true;
+//            } else {
+//                source = source.parentElement;
+//            }
+//        }
+//        return false;
+//    }
+
+
+//    Chart.prototype.disablePointerEvents = function (elms, disable) {
+//        for (var i = 0; i < elms.length; i++) {
+////            if (disable) {
+////                elms[i].classList.add("disable-pointer-events");
+////            } else {
+////                elms[i].classList.remove("disable-pointer-events");
+////            }
+//            var nodeIterator = document.createNodeIterator(elms[i]);
+//            var currentNode;
+//            while (currentNode = nodeIterator.nextNode()) {
+//                if (currentNode.classList === undefined) {
+//                    continue;
+//                }
+//                if (disable) {
+//                    currentNode.classList.add("disable-pointer-events");
+//                } else {
+//                    currentNode.classList.remove("disable-pointer-events");
+//                }
+//            }
+//        }
+//    };
+
+//Calculate the width for the chart.
+//If there is a width style read that in. Otherwise set the width to
+//document.offsetWidth less 80 pixels;
+//If the style width is set, see if it is a percentage figure. If so then
+//calculate the svg width as a percentage of the body.offsetWidth
+    Chart.prototype.calcWidth = function (elm) {
         var width = elm.style === undefined ?
                 undefined :
                 elm.style.width;
@@ -197,9 +245,8 @@ app.factory('Charts', function () {
             width = document.body.offsetWidth * parseFloat(width) / 100.0;
         }
         return width;
-    }
-    
-    function calcHeight(elm) {
+    };
+    Chart.prototype.calcHeight = function (elm) {
         var height = elm.style === undefined ?
                 undefined :
                 elm.style.height;
@@ -209,113 +256,267 @@ app.factory('Charts', function () {
             height = document.body.offsetHeight * parseFloat(height) / 100.0;
         }
         return height;
-    }
-    
-
+    };
     //Recalc the chart widths when a new chart is dropped into the target
     //row. Also recalc the chart heigths
-    function resizeCharts(svgs, width,height) {
+    function resizeCharts(svgs, width, height) {
+        //hardcode table row width and height
+        //this is to prevent complications with resizing
+        //on graph move.
+
+        width = getDefaultWidth();
+        height = getDefaultHeight();
+        var len = svgs.length;
+        if (len === 0) {
+            return;
+        }
         if (svgs !== undefined && svgs !== null) {
             for (var i = 0; i < svgs.length; i++) {
-                svgs[i].setAttribute("width", (width / svgs.length));
-                svgs[i].setAttribute("height", (height / svgs.length));
+                svgs[i].setAttribute("width", (width / len));
+                svgs[i].setAttribute("height", (height / len));
             }
         }
     }
 
-    Chart.prototype.render = function () {
-        var xscale = this.chartWidth / this.data.maxx;
-        var yscale = this.chartHeight / this.data.maxy;
-        var elm = document.querySelector(this.container);
-        //setup new table, row and cell to contain chart
-        var table = document.createElement("div");
-        table.setAttribute("id", "chart-table-" + this.id);
-        table.classList.add("chart-table");
 
-        var row = document.createElement("div");
-        row.setAttribute("class", "chart-row");
-        row.setAttribute("id", "chart-row-" + this.id);
+    function getRealRow(cloneRow) {
+        var id = cloneRow.getAttribute("id");
+        id = id.substring(0, id.lastIndexOf("-clone"));
+        return document.getElementById(id);
+    }
 
+
+    function addEventListenersToRow(row, self) {
         row.addEventListener("dragenter", function (e) {
-            var elms = this.children;
-            if (e.dataTransfer.getData("text")==="" || isAncestor(this, document.querySelector(e.dataTransfer.getData("text")))) {
-                setPointerEvents(elms, true);
-            } else {
-                setPointerEvents(elms, false);
+            console.log("dragenter");
+            if (currentDraggedChart.parentElement !== null) {
+                var source = currentDraggedChart.parentElement;
+                source.removeChild(currentDraggedChart);
+                var svgs = source.getElementsByTagName("svg");
+                resizeCharts(svgs, source.offsetWidth, source.offsetHeight);
             }
-            ;
-            //this.classList.add("over");
-        });
-
+            var target = getRealRow(row);
+            //if (BrowserDetect.browser !== "Chrome") {
+                target.scrollIntoView(false);
+            //}
+            var width = target.offsetWidth;
+            var height = target.offsetHeight;
+            target.appendChild(currentDraggedChart);
+            var svgs = target.getElementsByTagName("svg");
+            resizeCharts(svgs, width, height);
+            e.preventDefault();
+            //e.stopPropagation();
+            return false;
+        }
+        );
         row.addEventListener("dragleave", function (e) {
-            //this.classList.remove("over");
-            var elms = this.children;
-            setPointerEvents(elms, true);
+            console.log("dragleave");
+            var realrow = getRealRow(row);
+            if (currentDraggedChart.parentElement === realrow) {
+                realrow.removeChild(currentDraggedChart);
+            }
+            var svgs = realrow.getElementsByTagName("svg");
+            resizeCharts(svgs, realrow.offsetWidth, realrow.offsetHeight);
+            e.preventDefault();
+            //e.stopPropagation();
+            return false;
         });
-
-        row.addEventListener("drop", function (e) {
-            var elm = document.querySelector("#" + e.dataTransfer.getData("text"));
-            var source = elm.parentElement;
-            source.removeChild(elm);
-            this.appendChild(elm);
-            var width = calcWidth(elm.parentElement.parentElement);
-            var height = calcHeight(elm.parentElement.parentElement);
-            //resize graphs in target table
-            var svgs = findSVGs(this);
-            resizeCharts(svgs, width,height);
-            svgs.length = 0;
-            //resize graphs in source table
-            //requery to get the children of original source
-            resizeCharts(source.querySelectorAll("svg"), width,height);
-        });
-
         row.addEventListener("dragover", function (e) {
             e.preventDefault();
+            //e.stopPropagation();
+            return false;
         });
-        table.appendChild(row);
-        elm.appendChild(table);
+        row.addEventListener("drop", function (e) {
+            console.log("drop");
+            var target = getRealRow(row);
+            var elm = document.querySelector("#" + e.dataTransfer.getData("text/plain"));
+            console.log("dropped=" + elm);
+            var source = elm.parentElement;
+            source.removeChild(elm);
+            target.appendChild(elm);
+            var width = self.calcWidth(target);
+            var height = self.calcHeight(target);
+            //resize graphs in target table
+            var svgs = target.querySelectorAll("svg");
+            resizeCharts(svgs, width, height, null);
+            //resize graphs in source table
+            //requery to get the children of original source
+            svgs = source.querySelectorAll("svg");
+            resizeCharts(svgs, width, height, null);
+            cleanUpChartTables();
+            e.preventDefault();
+            return false;
+        });
+    }
+
+    function cleanUpChartTables() {
+//        //remove clones
+//        var clones = document.getElementsByClassName("clone");
+//        for (var i = 0; i < clones.length; i++) {
+//                clones[i].parentElement.removeChild(clones[i]);
+//                resizeCharts(clones[i].parentElement.getElementsByTagName("svg"),getDefaultWidth(),getDefaultHeight());
+//        }
+
+        //remove empty charts divs created by dropping charts into body
+        var chartdivs = document.querySelectorAll(".charts");
+        for (var i = 0; i < chartdivs.length; i++) {
+            var tmpsvgs = chartdivs[i].querySelectorAll("svg");
+            if (tmpsvgs.length === 0) {
+                chartdivs[i].parentElement.removeChild(chartdivs[i]);
+            }
+        }
+        //remove empty rows
+        var elms = document.querySelectorAll(".chart-table");
+        for (var i = 0; i < elms.length; i++) {
+            var charts = elms[i].getElementsByClassName("chart");
+            if (charts.length === 0) {
+                elms[i].parentElement.removeChild(elms[i]);
+            }
+        }
+        //reposition masks
+        var masks = document.querySelectorAll(".clone");
+        for (var i = 0; i < masks.length; i++) {
+            setPosition(masks[i].parentElement, masks[i]);
+        }
+    }
+
+    //Should be in the dragstart event moved out to accommodate Chrome
+    //bug or feature.
+    Chart.prototype.enableMasks = function (move) {
+        currentDraggedChart = move.parentElement;
+        console.log("currentDraggedChart=" + move.parentElement);
+        //var clones = document.getElementsByClassName("clone");
+        var itr = document.createNodeIterator(document.body, NodeFilter.SHOW_ELEMENT, {acceptNode: function (node) {
+                if (node.classList.contains('clone') /*&& node.getAttribute("id") !== move.parentElement.parentElement.getAttribute("id") + "-clone"*/) {
+                    return NodeFilter.FILTER_ACCEPT;
+                } else {
+                    return NodeFilter.FILTER_REJECT;
+                }
+            }});
+        var current;
+        while (current = itr.nextNode()) {
+            current.classList.remove("hide");
+        }
+    }
+    
+    Chart.prototype.disableMasks = function () {
+        var clones = document.getElementsByClassName("clone");
+        for (var i = 0; i < clones.length; i++) {
+            clones[i].classList.add("hide");
+        }
+    }
+
+
+    Chart.prototype.render = function () {
+
+        var xscale = this.chartWidth / this.data.maxx;
+        var yscale = this.chartHeight / this.data.maxy;
+        //setup new table, row and cell to contain chart
+        var row = createNewTableRow(document.querySelector("#" + this.container));
+        var self = this;
         //setup div that 
         var chart = document.createElement("div");
         row.appendChild(chart);
-
         chart.setAttribute("id", this.id);
         chart.setAttribute("class", "chart");
-
         //setup close button for chart
         var close = document.createElement("a");
         close.setAttribute("href", "#");
-        close.setAttribute("class", "close");
+        close.classList.add("close");
+        close.classList.add("clickable");
         close.appendChild(document.createTextNode("\u00D7"));
         close.addEventListener("click", function (e) {
             e.preventDefault();
             var tmpNode = this.parentElement.parentElement;
-            var width = calcWidth(tmpNode);
-            var height = calcHeight(tmpNode);
-            var svgs = tmpNode.querySelectorAll("svg");
-            svgs = _.toArray(svgs);
-            var index = svgs.indexOf(this.parentElement);
-            svgs.splice(index, 1);
-            resizeCharts(svgs, width,height);
+            var width = self.calcWidth(tmpNode);
+            var height = self.calcHeight(tmpNode);
+//            var svgs = tmpNode.querySelectorAll("svg");
+//            svgs = _.toArray(svgs);
+//            var index = svgs.indexOf(this.parentElement);
+//            svgs.splice(index, 1);
             tmpNode.removeChild(this.parentElement);
+            var svgs = tmpNode.querySelectorAll("svg");
+            resizeCharts(svgs, width, height);
+            delete charts[this.getAttribute("id")];
             return false;
         });
         chart.appendChild(close);
+        //Setup move icon
         var move = document.createElement("a");
         move.setAttribute("href", "#");
-        move.setAttribute("class", "close");
+        move.classList.add("close");
+        move.classList.add("clickable");
         move.appendChild(document.createTextNode("\u2725"));
         move.setAttribute("draggable", true);
         move.addEventListener("click", function (e) {
             e.preventDefault();
         });
+        //Work around for drag and drop bug in chrome. Doesn't like
+        //dom manipulation going on in any drag and drop event.
+//        if (BrowserDetect.browser === 'Chrome') {
+//            move.addEventListener("mousedown", function (e) {
+//                move.parentElement.classList.add("nomove");
+//                self.enableMasks(move);
+//            });
+//            move.addEventListener("mouseup", function (e) {
+//                currentDraggedChart = null;
+//                move.classList.remove("nomove");
+//                self.disableMasks();
+//            });
+//        }
+
+
+
+        //setup handling for when move icon is dragged
         move.addEventListener("dragstart", function (e) {
-            this.style.opacity = 0.4;
+            console.log("dragstart");
+            var image =  document.createElement("img");
+            image.setAttribute("src","images/graph-line.svg");
+            image.width="10px";
+            image.height="10px";
+            e.dataTransfer.setDragImage(image, 0, 0);
+            this.parentElement.style.opacity = 0.4;
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.dropEffect = 'move';
-            e.dataTransfer.setData('text', this.parentElement.id);
+            e.dataTransfer.setData('text/plain', this.parentElement.id);
+            //if (BrowserDetect.browser !== 'Chrome') {
+                self.enableMasks(move);
+            //}
         });
         move.addEventListener("dragend", function (e) {
-            this.style.opacity = 1;
+            console.log("dragend");
+            this.parentElement.style.opacity = 1;
+            currentDraggedChart = null;
+            self.disableMasks();
+            if (e.dataTransfer.dropEffect === 'none') {
+                console.log("dragend = target is none");
+                var div = document.createElement("div");
+                div.setAttribute("id", "chartTableContainer-" + rowCounter);
+                div.setAttribute("class", "charts");
+                document.body.appendChild(div);
+                var target = createNewTableRow(div);
+                //add row table event handlers
+                var chart = charts[this.parentElement.id];
+                var source = this.parentElement.parentElement;
+                if (source !== null) { //source is null when the drop is not over 
+                    //a chart-row element. i.e not over a drop target to which
+                    //we have already added the currentDraggedChart
+                    source.removeChild(this.parentElement);
+                }
+
+                target.appendChild(this.parentElement);
+                var chart = charts[this.parentElement.getAttribute("id")];
+                //resize source/target rows
+                resizeCharts(this.parentElement.parentElement.getElementsByTagName("svg"),
+                        chart.calcWidth(this.parentElement.parentElement),
+                        chart.calcHeight(this.parentElement.parentElement));
+                resizeCharts(source.parentElement.parentElement.getElementsByTagName("svg"),
+                        chart.calcWidth(source.parentElement),
+                        chart.calcHeight(source.parentElement));
+                var clone = cloneRow(target);
+                addEventListenersToRow(clone, chart);
+                cleanUpChartTables();
+            }
         });
         chart.appendChild(move);
         //setup svg
@@ -334,6 +535,7 @@ app.factory('Charts', function () {
         svg.appendChild(gwrapper);
         g.currentScale = 1;
         var self = this;
+        //setup chart zooming. Needs some work.
         g.addEventListener('wheel', self.zoom.bind(self));
         for (var i = this.series.length - 1; i >= 0; i--) {
             var value = this.series[i];
@@ -348,6 +550,7 @@ app.factory('Charts', function () {
             g.appendChild(path);
         }
         ;
+        //render other stuff
         if (this.labels) {
             this.renderLabels();
         }
@@ -359,8 +562,9 @@ app.factory('Charts', function () {
         if (this.legend) {
             this.renderLegend();
         }
+        var clone = cloneRow(row);
+        addEventListenersToRow(clone, this);
     };
-
     Chart.prototype.renderTitle = function () {
         var svg = document.querySelector("#" + this.id + " svg");
         var text = document.createElementNS(this.svgns, "text");
@@ -374,7 +578,6 @@ app.factory('Charts', function () {
         text.setAttributeNS(null, "y", 18);
         svg.children[0].setAttributeNS(null, "transform", "translate(0 " + (this.titleOffset) + ")");
     };
-
     Chart.prototype.renderLegend = function () {
         var elm = document.querySelector("#" + this.id);
         var legend = document.createElement("div");
@@ -390,9 +593,6 @@ app.factory('Charts', function () {
             list.appendChild(item);
         });
     };
-
-    var charts = [];
-
     function drawChart(db, containerId, data, hasLegend) {
         db.findAll("gcEntry", data.index, data.key, function (e) {
             var array = e;
@@ -401,7 +601,7 @@ app.factory('Charts', function () {
                 var textNode = document.createTextNode("No records found");
                 span.setAttribute("style", "color:red");
                 span.appendChild(textNode);
-                document.querySelector(containerId).appendChild(span);
+                document.querySelector("#" + containerId).appendChild(span);
                 return;
             }
             var worker = new Worker('js/worker.js');
@@ -419,25 +619,26 @@ app.factory('Charts', function () {
                     data: e.data,
                     legend: hasLegend,
                     subTitle: "Total Heap",
-                    id: "chart" + charts.length,
+                    id: "chart" + Object.keys(charts).length,
                     title: data.host + " - " + data.file
                 });
                 chart.render();
-                charts.push(chart);
+                charts[chart.id] = chart;
             });
             worker.postMessage(array);
         });
-    };
-    
-    function getDefaultWidth(){
-            return document.body.clientWidth - 80;        
     }
-    
-    function getDefaultHeight(){
+
+
+    function getDefaultWidth() {
+        return document.body.clientWidth - 80;
+    }
+
+    function getDefaultHeight() {
         return 700;
     }
 
-    function formatNumber(text) {
+    Chart.prototype.formatNumber = function (text) {
         text = text.toString();
         var i = text.length;
         var string = "";
@@ -453,11 +654,10 @@ app.factory('Charts', function () {
         }
         string = string.split("").reverse().join("");
         return string;
-    }
-
+    };
     return {
         drawChart: drawChart,
         clear: clearCharts,
-        zoom: zoom
+        zoom: zoomAll
     };
 });

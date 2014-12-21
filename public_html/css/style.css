@@ -41,27 +41,27 @@ limitations under the License.
         max-height: 2em;
         width: 100%; }
 
-#charts {
+.charts {
   display: table;
   margin: auto;
-  border-spacing: 20px; }
+  border-spacing: 20px;
+  width: 90%; }
 
 .chart-table {
-  display: table; }
+  display: table;
+  width: 100%;
+  margin-top: 20px; }
 
 .chart-row {
-  display: table-row; 
-  height: 100px;
-}
+  display: table-row;
+  width: 100%; }
 
 .chart {
   border: gray outset 1px;
   border-radius: 20px;
   box-shadow: 10px 10px 5px 5px black;
   margin: auto;
-  display: table-cell; 
-  height: 100px !important;
-}
+  display: table-cell; }
   .chart a {
     padding-right: 10px;
     padding-top: 5px; }
@@ -75,7 +75,27 @@ limitations under the License.
   .legend ul {
     list-style: none; }
     .legend ul li {
-      padding-left: 10px; }
+      padding-left: 10px;
+      display: inline; }
+
+.highlight {
+  background-color: green;
+  opacity: 0.3; }
 
 .disable-pointer-events {
   pointer-events: none; }
+
+.clone {
+  z-index: 10; }
+
+.hide {
+  display: none; }
+
+.clickable {
+  cursor: pointer; }
+
+.nomove {
+  position: relative; }
+
+.dummy {
+  display: table-cell; }
