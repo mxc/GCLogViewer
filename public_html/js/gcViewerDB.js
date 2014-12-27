@@ -82,31 +82,11 @@ app.factory('GCViewerDB', ['db', function (db) {
         };
 
         GCViewerDB.prototype.find = function (objStore, index, key, onsuccess, onerror) {
-            this.db.find(objStore, index, key, onsuccess, onerror);
+           return this.db.find(objStore, index, key, onsuccess, onerror);
         };
 
-        GCViewerDB.prototype.findAll = function (objStore, index, key, onsuccess, onerror) {
-            this.db.findAll(objStore, index, key, onsuccess, onerror);
-        };
-
-//        GCViewerDB.prototype.getDataPoints = function (data,callback) {
-//            this.db.find('gcEntry',data.index,data.key,callback);
-//        };
-
-        GCViewerDB.prototype.getHosts = function ($scope) {
-            this.db.getObjectArray("fileData", function (array) {
-                if ($scope.hosts!==undefined){
-                    $scope.hosts.length = 0;
-                }
-                var tmpArray = [];
-                array.forEach(function (item, index, array) {
-                    tmpArray.push(item.host);
-                });
-                tmpArray.sort();
-                tmpArray = _.uniq(tmpArray);
-                $scope.hosts = tmpArray;
-                $scope.host = $scope.hosts[0];
-            });
+        GCViewerDB.prototype.findAllByMatch = function (objStore, index, key, onsuccess, onerror) {
+           return this.db.findAllByMatch(objStore, index, key, onsuccess, onerror);
         };
 
         GCViewerDB.prototype.getFiles = function ($scope) {
@@ -119,13 +99,17 @@ app.factory('GCViewerDB', ['db', function (db) {
                 $scope.files.sort(function(a,b){
                     return a.fileName.localeCompare(b.fileName);
                 });
-                $scope.file = $scope.files[0];
+                $scope.selectedFile = $scope.files[0];
                 $scope.$apply();
             });
         };
         
         GCViewerDB.prototype.getStatus=function(){
                 return this.db.getStatus();
+        };
+        
+        GCViewerDB.prototype.getHosts=function(onsuccess,onerror){
+            this.db.findAll('fileData','md5sum',onsuccess,onerror);
         };
 
         return new GCViewerDB();

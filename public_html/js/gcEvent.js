@@ -14,88 +14,109 @@
  * limitations under the License.
  */
 
-app.factory("GCEvent", function () {
+app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
 
-    function FileData(fileName, md5Sum, host, date) {
-        this.fileName = fileName;
-        this.md5Sum = md5Sum;
-        this.host = host;
-        this.date = date;
-    }
-
-    function GCEvent(dateStamp, timeStamp,
-            youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
-            totalUsedPrior, totalUsedAfter, totalHeap, time, fileKey) {
-        this.timeStamp = parseFloat(timeStamp);
-        if (dateStamp !== null) {
-            this.dateStamp = Date.parse(dateStamp);
+        function FileData(fileName, md5Sum, host, date) {
+            this.fileName = fileName;
+            this.md5Sum = md5Sum;
+            this.host = host;
+            this.date = date;
         }
-        this.youngGenUsedPrior = parseInt(youngGenUsedPrior);
-        this.youngGenUsedAfter = parseInt(youngGenUsedAfter);
-        this.totalYoungGen = parseInt(totalYoungGen);
-        this.totalUsedPrior = parseInt(totalUsedPrior);
-        this.totalUsedAfter = parseInt(totalUsedAfter);
-        this.totalHeap = parseInt(totalHeap);
-        this.time = parseFloat(time);
-        this.fileKey = fileKey;
-    }
 
-    var getFileData = function (file, md5sum, host, date) {
-        var fileObj = new FileData(file, md5sum, host, date);
-        return fileObj;
-    };
-
-    //Refactor Me
-    var parseLogEntry = function (line, filekey, nogcDetails) {
-        var regex;
-        var data;
-        if (nogcDetails) {
-            regex = /(?:(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d+\.\d+):\s)?.*?(?: (?:(\d+)K->(\d+)K\((\d+)K\)(?:,\s(\d*\.\d*) secs)?)\]) ?/;
-            var matches = line.match(regex);
-            if (!matches) {
-                return;
+        function GCEvent(dateStamp, timeStamp,
+                youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
+                totalUsedPrior, totalUsedAfter, totalHeap, time, fileKey) {
+            this.timeStamp = parseFloat(timeStamp);
+            if (dateStamp !== null || dateStamp!==undefined) {
+                this.dateStamp = Date.parse(dateStamp);
             }
-            var dateStamp = matches[1];
-            var timeStamp = matches[2];
-            var youngGenUsedPrior = 0;
-            var youngGenUsedAfter = 0;
-            var totalYoungGen = 0;
-            var youngTime = 0;
-            var totalUsedPrior = matches[3];
-            var totalUsedAfter = matches[4];
-            var totalHeap = matches[5];
-            var time = matches[6];
-            data = new GCEvent(dateStamp, timeStamp,
-                    youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
-                    totalUsedPrior, totalUsedAfter, totalHeap, time, filekey);
-
-        } else {
-            regex = /(?:(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d+\.\d+):\s)?.*?(?: (?:(\d+)K->(\d+)K\((\d+)K\)(?:,\s(\d*\.\d*) secs)?)\]) ?(?:\s(\d+)K->(\d+)K\((\d+)K\))(?:,\s(\d*\.\d*) secs\])?/;
-            var matches = line.match(regex);
-            if (!matches) {
-                return;
-            }
-            //console.log(matches);
-            var dateStamp = matches[1];
-            var timeStamp = matches[2];
-            var youngGenUsedPrior = matches[3];
-            var youngGenUsedAfter = matches[4];
-            var totalYoungGen = matches[5];
-            var youngTime = matches[6];
-            var totalUsedPrior = matches[7];
-            var totalUsedAfter = matches[8];
-            var totalHeap = matches[9];
-            var time = matches[10];
-            data = new GCEvent(dateStamp, timeStamp,
-                    youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
-                    totalUsedPrior, totalUsedAfter, totalHeap, time, filekey);
+            this.youngGenUsedPrior = youngGenUsedPrior===undefined?undefined:parseInt(youngGenUsedPrior);
+            this.youngGenUsedAfter = youngGenUsedAfter===undefined?undefined:parseInt(youngGenUsedAfter);
+            this.totalYoungGen = totalYoungGen===undefined?undefined:parseInt(totalYoungGen);
+            this.totalUsedPrior = parseInt(totalUsedPrior);
+            this.totalUsedAfter = parseInt(totalUsedAfter);
+            this.totalHeap = parseInt(totalHeap);
+            this.time = parseFloat(time);
+            this.fileKey = fileKey;
         }
-        return data;
-    };
 
-    return {
-        parseLogEntry: parseLogEntry,
-        getFileData: getFileData
-    };
+        var getFileData = function (file, md5sum, host, date) {
+            var fileObj = new FileData(file, md5sum, host, date);
+            return fileObj;
+        };
 
-});
+        //Refactor Me
+        var parseLogEntry = function (line, filekey, nogcDetails) {
+            var regex;
+            var data;
+            //log files without gcDetails enabled
+            if (nogcDetails) {
+                regex = /(?:(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d+\.\d+):\s)?.*?(?: (?:(\d+)K->(\d+)K\((\d+)K\)(?:,\s(\d*\.\d*) secs)?)\]) ?/;
+                var matches = line.match(regex);
+                if (!matches) {
+                    return;
+                }
+                var dateStamp = matches[1];
+                var timeStamp = matches[2];
+                var youngGenUsedPrior = undefined;
+                var youngGenUsedAfter = undefined;
+                var totalYoungGen = undefined;
+                var youngTime = undefined;
+                var totalUsedPrior = matches[3];
+                var totalUsedAfter = matches[4];
+                var totalHeap = matches[5];
+                var time = matches[6];
+                data = new GCEvent(dateStamp, timeStamp,
+                        youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
+                        totalUsedPrior, totalUsedAfter, totalHeap, time, filekey);
+
+            } else {
+                //log files with gcDetails
+                regex = /(?:(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d+\.\d+):\s)?\[.*?\[.*?(\d+)K->(\d+)K\((\d+)K\)(?:.*,\s\d*\.\d* secs)?\](?: \[.*\])?(?:\s(\d+)K->(\d+)K\((\d+)K\))(?:.*,\s(\d*\.\d*) secs\])?/;
+                var matches = line.match(regex);
+                if (!matches) {
+                    return;
+                }
+                //console.log(matches);
+                var dateStamp = matches[1];
+                var timeStamp = matches[2];
+                var youngGenUsedPrior = matches[3];
+                var youngGenUsedAfter = matches[4];
+                var totalYoungGen = matches[5];
+                //var youngTime = matches[6];
+                var totalUsedPrior = matches[6];
+                var totalUsedAfter = matches[7];
+                var totalHeap = matches[8];
+                var time = matches[9];
+                data = new GCEvent(dateStamp, timeStamp,
+                        youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
+                        totalUsedPrior, totalUsedAfter, totalHeap, time, filekey);
+            }
+            return data;
+        };
+
+        function saveGCEntries(dataObj) {
+            var deferred = $q.defer();
+            var fileObjData = dataObj.fileDataObj;
+            var objs = dataObj.objs;
+            var count = objs.length;
+            db.updateDataStore("fileData", fileObjData, function (e) {
+                db.updateDataStore('gcEntry', objs, function (e) {
+                    deferred.resolve("File loaded. " + count + " lines read.");
+                }, function (e) {
+                    deferred.reject(e);
+                }), function (e) {
+                    //console.log("Committed " + count + " entries");
+                    deferred.reject(e);
+                };
+            });
+            return deferred.promise;
+        };
+
+        return {
+            parseLogEntry: parseLogEntry,
+            getFileData: getFileData,
+            saveGCEntries: saveGCEntries
+        };
+
+    }]);

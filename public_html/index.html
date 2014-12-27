@@ -20,6 +20,7 @@
         <meta charset="UTF-8">
         <!-- build:css css/styles.min.css -->
         <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="bower_components/jquery-ui/themes/smoothness/jquery-ui.min.css">        
         <!-- bower:css -->
         <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
         <!-- endbower -->
@@ -27,50 +28,108 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body ng-app="app" ng-controller="GCLogViewerController">
-    <bootstrapnavbar>
-        <menutitle>GC Log Viewer</menutitle>
-        <menu>
-            <menuitem ng-class="{active: active === 'showFileUploadForm'}" ng-click="openUploadDialog()">
-                <i class="icon-file"></i>Load File
-            </menuitem>
-            <dropdownmenuitem title="Graphs">
-                <menuitem   ng-click="addGraph()">Add Graph</menuitem>
-                <menuitem   ng-click="clearCharts()">Clear</menuitem>
-            </dropdownmenuitem>
-            <dropdownmenuitem title="Zoom">
-                <menuitem   ng-click="zoom(0.5)">50%</menuitem>
-                <menuitem   ng-click="zoom(1)">100%</menuitem>
-                <menuitem   ng-click="zoom(1.5)">150%</menuitem>
-            </dropdownmenuitem>
-            <dropdownmenuitem title="Maintenance">
-                <menuitem ng-click="createDataStore()">Create Data Store</menuitem>
-                <menuitem ng-click="dropDataStore()">Drop Data Store</menuitem>
-            </dropdownmenuitem>
-        </menu>
-    </bootstrapnavbar>
-    <div style="width:450px; text-align: center;margin:auto;">
-    <alert ng-show="successes.length> 0" type="success" close="successes=[];"><span ng-repeat="success in successes">{{success}}</span><br></alert>
-    <alert ng-show="errors.length > 0" type="danger" close="errors=[];"><span ng-repeat="error in errors">{{error}}</span><br></alert>
-    </div>
-    <div id="charts" class="charts">
-    </div>
-    <!-- build:js js/scripts.min.js -->
-    <!-- bower:js -->
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
-    <script src="bower_components/underscore/underscore.js"></script>
-    <!-- endbower -->        
-    <script src="js/main.js"></script>
-    <script src="js/chart.js"></script>
-    <script src="js/db.js"></script>
-    <script src="js/gcViewerDB.js"></script>
-    <script src="js/browserdetect.js"></script>
-    <script src="js/gcEvent.js"></script>
-    <script src="js/angular-extensions.js"></script>
-    <script src="js/angular-bootstrap-navbar.js"></script>
-    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
-    <!-- endbuild -->        
-</body>
+        <div id="wrapper">
+            <bootstrapnavbar>
+                <menutitle>GC Log Viewer</menutitle>
+                <menu>
+                    <menuitem ng-class="{active: active === 'showFileUploadForm'}" ng-click="openUploadDialog()">
+                        <i class="icon-file"></i>Load File
+                    </menuitem>
+                    <dropdownmenuitem title="Graphs">
+                        <menuitem   ng-click="addGraph()">Add Graph</menuitem>
+                        <menuitem   ng-click="clearCharts()">Clear</menuitem>
+                    </dropdownmenuitem>
+                    <dropdownmenuitem title="Zoom">
+                        <menuitem   ng-click="zoom(0.5)">50%</menuitem>
+                        <menuitem   ng-click="zoom(1)">100%</menuitem>
+                        <menuitem   ng-click="zoom(1.5)">150%</menuitem>
+                    </dropdownmenuitem>
+                    <dropdownmenuitem title="Maintenance">
+                        <menuitem ng-click="createDataStore()">Create Data Store</menuitem>
+                        <menuitem ng-click="dropDataStore()">Drop Data Store</menuitem>
+                    </dropdownmenuitem>
+                </menu>
+            </bootstrapnavbar>
+            <div class="blurb">
+                <div class='intro'><h1>Welcome to GC Log Viewer</h1>
+                    <p>GC Log Viewer is an online JVM gclog graphing tool. It is hoped that GC Log Viewer  
+                        does away with the annoying situation of having to analyse a gclog file without 
+                        any tools at hand. This is a first beta release of the application. The application  was written to:
+                    <ul><li>See what could be done with SVG,</li>
+                        <li>Use the indexedDB HTML 5 api,</li>
+                        <li>Test out Angular JS in a real life application,</li>
+                        <li>To see just how far HTML Applications have come 
+                            and how far they still need to go. (Quite a bit.)</li>
+                        <li>To better understand the GC Log output.</li>
+                    </ul>
+                </div>
+                <div class='clearfix'>
+                    <div class='how-to'>
+                        <h2>How to use</h2>
+                        A quick guide to GC Log Viewer.
+                        <h4>Upload a log file</h4>
+                        <p>GC Log Viewer is a client side application, meaning it runs entirely in your browser. To start using the application upload
+                            your gclog file via the "Load File" menu item. The log entries are stored locally in an indexedDB object store. If your
+                            log file is large you may be prompted to allow the database to exceed the default maximum size, which varies from browser to
+                            browser.</p>
+                        <p>The data will be persisted and available when need to analyze the data again. i.e you will not need to re-upload.</p>
+                        <h4>Add Graph</h4>
+                        <p>Once you have loaded your files graphs can be added to the display via the "Graph" menu item. You can load more than one graph at
+                            a time. On Firefox you can drag and drop graphs to rearrange them. Currently drag and drop doesn't work in Chrome. There
+                            is a <a href="https://code.google.com/p/chromium/issues/detail?id=168544">bug</a> related to this. Its been open for two years
+                            so doesn't look like its going to be fixed soon. Could also be that the drag and drop HTML api is so bad its not worth using.
+                            In a future release we may replace the drag and drop api with a custom implementation.</p>
+                        <h4>Zoom</h4>
+                        <p>On Chrome the SVG zoom functionality allows for zooming in on the generated graphs but the support or document is rudimentary making
+                            it almost unusable. The "zoom" menu item is meant to make it easy to reset your zoom to a sane level once you get lost. </p>
+                        <h4>Maintenance</h4>
+                        Under the maintenance menu you can drop and create a new object store if you want to flush out all you data.
+                    </div>
+                    <div class='issues'>
+                        <h2>Issues and Supported GCLog file formats</h2>
+                        <p>The application has been tested with log files from a Java 8 JVM for the 
+                        <ul><li>Serial,</li><li>CMS,</li><li>Parallel garbage collectors</li></ul>. Your mileage may
+                            vary.In general the engineers who have created the JVM GC log file formats are deranged individuals who seem to care very little
+                            about using a format that is easy to parse with any kind of tool. They prefer instead to wade through lines of text to find a 
+                            problem it seems.</p>
+                    <p>For the best results it is <b>recommended to turn on the -XX:+PrintGCDetails jvm option.</b> How far we succeeded in extracting 
+                            useful information from the log files is hard to say. Any feedback on bugs and errors in the generated graphs will be appreciated.
+                            If you have an issue also provide a snippet of the log file so we can see about improving the regular expression we use to extract
+                            the data.  It is suspected that there will be a lot of log file formats in the wild will not be supported. Let us know.</p>
+                    <h4>Future Plans</h2>
+                    <p>Currently there the generated graphs are very rudimentary and future development will address this. We
+                        hope to add indication of the pause time involved in each garbage collection at some point. The data is available
+                        it is just a case of generating the necessary graphs.</p>
+                    </div>
+                </div>
+            </div>
+            <div style="width:450px; text-align: center;margin:auto;">
+                <alert ng-show="successes.length > 0" type="success" close="successes=[];"><span ng-repeat="success in successes">{{success}}</span><br></alert>
+                <alert ng-show="errors.length > 0" type="danger" close="errors=[];"><span ng-repeat="error in errors">{{error}}</span><br></alert>
+            </div>
+            <div id="container" class="chart-table-container" data-chart-row-width="100%" data-chart-row-height="50%">
+            </div>
+            <!-- build:js js/scripts.min.js -->
+            <!-- bower:js -->
+            <script src="bower_components/jquery/dist/jquery.js"></script>
+            <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+            <script src="bower_components/angular/angular.js"></script>
+            <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+            <script src="bower_components/underscore/underscore.js"></script>
+            <script src="bower_components/jquery-ui/jquery-ui.js"></script>
+            <!-- endbower -->        
+            <script src="js/main.js"></script>
+            <script src="js/chart.js"></script>
+            <script src="js/db.js"></script>
+            <script src="js/file.js"></script>
+            <script src="js/gcViewerDB.js"></script>
+            <script src="js/gcEvent.js"></script>
+            <script src="js/angular-extensions.js"></script>
+            <script src="js/angular-bootstrap-navbar.js"></script>
+            <script src="js/md5.js"></script>
+            <!--            <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>-->
+            <!-- endbuild -->    
+        </div>
+        <div id="footer"><a href="http://www.jumpingbean.biz">Software Development & Training - Jumping Bean</a></div>
+    </body>
 </html>

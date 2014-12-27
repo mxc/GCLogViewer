@@ -9,11 +9,11 @@
             <span><select required ng-change="updateFileList()" ng-model="host" ng-options="host for host in hosts">
                     <option value="">-- choose host --</option>
                 </select><br></span></p>
-        <p><span><label for="date">File:</label></span>
-            <span><select required ng-model="file" ng-options="file.fileName for file in files track by file.key">
+        <p><span><label for="date">File:*</label></span>
+            <span><select required ng-model="selectedFile" ng-options="file.fileName for file in files track by file.key">
                     <option value="">-- choose File --</option>
                 </select></span></p>
-        <p><span>Type</span><span><select ng-model="type" ng-options="type for type in types"></select></span></p>
+        <!--<p><span>Type</span><span><select ng-model="type" ng-options="type for type in types"></select></span></p>-->
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" ng-click="cancel()">Close</button>

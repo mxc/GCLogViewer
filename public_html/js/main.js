@@ -16,95 +16,51 @@
 
 var app = angular.module("app", ['ui.bootstrap']);
 
+app.controller("GCLogViewerController", ['$scope', '$window', '$q', 'GCViewerDB',
+    'Charts', 'GCEvent', 'File', '$modal',
+    function ($scope, $window, $q, db, Charts, GCEvent, File, $modal) {
 
-app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
-    'Charts', 'GCEvent', '$modal',
-    function ($scope, $window, db, Charts, GCEvent, $modal) {
-
-        //var db = new GCViewerDB();
         $scope.active = "";
         $scope.successes = [];
         $scope.errors = [];
+        Charts.setFooter();
+        IndexedDB = {};
 
+        //var wrapper = document.getElementById("wrapper");
+        //wrapper.setAttribute("style", "min-height:" + (window.innerHeight - 65) + "px;");
         $scope.zoom = function (ratio) {
             Charts.zoom(ratio);
-        }
+        };
+
+        window.addEventListener("resize", function () {
+            Charts.windowResize();
+        });
 
         $scope.unset = function () {
             $scope.active = "";
         };
 
-        function checkDB(file, host, date) {
+        $scope.openDB = function (filedata) {
+            var deferred = $q.defer();
             if (db.getStatus() === "closed") {
                 db.createDataStore(function () {
-                    processFile(file, host, date);
+                    deferred.resolve(filedata);
                 });
-                return false;
             } else {
-                return true;
+                deferred.resolve(filedata);
             }
-        }
+            return deferred.promise;
+        };
 
-        function processFile(file, host, date) {
-            if (!checkDB(file, host, date)) {
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                var hash = CryptoJS.MD5(reader.result);
-                //first check if file is already uploaded
-                //then insert file data and gc log entries
-                db.find('fileData', 'md5sum', hash.toString(), function (e) {
-                    if (e.target.result) {
-                        $scope.errors.push("The file has already been uploaded");
-                        return;
-                    }
-                    var objs = [];
-                    var lines = reader.result.split(/\r\n|\r|\n/g);
-                    var newString = "";
-
-                    lines.forEach(function (value, index, array) {
-                        newString += value.replace(/(^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*\+\d*:\s|^\d+\.\d+:\s)/, "__$1") + " ";
-                    });
-
-                    newString = newString.split(/__/);
-                    newString.forEach(function (value, index, array) {
-                        var obj = GCEvent.parseLogEntry(value, hash.toString(), false);
-                        if (obj !== undefined) {
-                            objs.push(obj);
-                        }
-                    });
-                    //if no objects have been imported the file could be in a format
-                    //that does not have PrintGCDetails enabled.
-                    var count = objs.length;
-                    if (count === 0) {
-                        newString.forEach(function (value, index, array) {
-                            var obj = GCEvent.parseLogEntry(value, hash.toString(), true);
-                            if (obj !== undefined) {
-                                objs.push(obj);
-                            }
-                        });
-                    }
-                    count=objs.length;
-                    
-                    var fileData = GCEvent.getFileData(file.name, hash.toString(), host, date);
-                    db.updateDataStore("fileData", fileData, function (e) {
-                        db.updateDataStore('gcEntry', objs, null, null, function (e) {
-                            console.log("Aborted!");
-                        }, function (e) {
-                            $scope.successes.push("File loaded. " + count + " lines read.");
-                            console.log("Committed " + count + " entries");
-                        });
-                    });
-                });
-            };
-            reader.onerror = function (e) {
-                $window.document.body.appendChild(document.createTextNode(reader.error));
-            };
-            reader.readAsText(file);
-            return false;
-        }
-        ;
+        $scope.processFile = function (filedata) {
+            this.openDB(filedata).then(File.getFile).then(File.loadFile, function (error) {
+                $scope.errors.push("The file has already been uploaded");
+            }).then(GCEvent.saveGCEntries).then(function (msg) {
+                $scope.successes.push(msg);
+            }, function (e) {
+                $scope.errors.push(e);
+            });
+        };
 
         $scope.addGraph = function () {
             this.active = "addGraph";
@@ -113,54 +69,64 @@ app.controller("GCLogViewerController", ['$scope', '$window', 'GCViewerDB',
                 controller: 'addGraphController',
                 scope: $scope
             });
-
             modalInstance.result.then(function (data) {
+                var elms = document.getElementsByClassName("blurb");
+                _.each(elms, function (value) {
+                    value.setAttribute("style", "display:none;");
+                });
                 data.index = "fileKey";
-                var charts = document.getElementsByClassName("charts");
-                var id = charts[charts.length-1].getAttribute("id");
-                Charts.drawChart(db, id, data, true);
+                db.find("fileData", "md5sum", data.key, function (e) {
+                    var file = e.target.result;
+                    data.title = file.fileName;
+                    if (file.date !== undefined) {
+                        data.title += "-(" + file.date + ")";
+                    }
+                    var container = document.getElementsByClassName("chart-table-container")[0];
+                    Charts.drawChart(db, container, data, true);
+                }, function (e) {
+                    $scope.errors.push("Failed to load graph");
+                });
             }, function () {
                 console.info('Modal dismissed ');
             });
         };
-
         $scope.dropDataStore = function () {
             db.dropDataStore();
         };
-
         $scope.createDataStore = function () {
             if (db.getStatus() === "closed") {
                 db.createDataStore();
             }
         };
-
         $scope.openUploadDialog = function () {
             this.active = "showFileUploadForm";
             var modalInstance = $modal.open({
                 templateUrl: 'templates/uploadfile.html',
                 controller: 'uploadFileController'
             });
-
-            modalInstance.result.then(function (data) {
-                processFile(data.file, data.host, data.date);
+            modalInstance.result.then(function (fileData) {
+                $scope.processFile(fileData);
             }, function () {
                 console.info('Modal dismissed ');
             });
         };
-
         $scope.clearCharts = function () {
             Charts.clear();
-        }
+            var elms = document.getElementsByClassName("blurb");
+            _.each(elms, function (value) {
+                value.setAttribute("style", "");
+            });
+        };
     }]);
 
 app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', function ($scope, $modalInstance, db) {
 
         $scope.errors = [];
         $scope.successes = [];
-
         $scope.host = "";
-        $scope.file = "";
-        $scope.types = ["Heap Space", "Collection times", "Details"];
+        $scope.selectedFile = "";
+        $scope.files = [];
+        //$scope.types = ["Heap Space", "Collection times", "Details"];
 
         function updateFiles() {
             db.getFiles($scope);
@@ -171,24 +137,25 @@ app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', 
                 arr.push(name + " is invalid.");
             }
         };
-
         $scope.$watch("host", function (newval, oldval) {
             updateFiles();
         });
 
-        $scope.files = [];
-        $scope.hosts = db.getHosts($scope);
+        db.getHosts(function (data) {
+            var hosts = [];
+            data.forEach(function (value) {
+                hosts.push(value.host);
+            });
+            hosts.sort();
+            hosts = _.unique(hosts, true);
+            $scope.hosts = hosts;
+            $scope.host = hosts[0];
+        }, function (e) {
+            console.log(e);
+        });
 
         $scope.ok = function () {
-            $scope.errors = [];
-            $scope.successes = [];
-//            validate("File", $scope.file, $scope.errors);
-//            validate("Server", $scope.host, $scope.errors);
-            if ($scope.errors.length > 0) {
-                return;
-            } else {
-                $modalInstance.close({key: $scope.file.key, file: $scope.file.fileName, host: $scope.host});
-            }
+            $modalInstance.close({key: $scope.selectedFile.key, file: $scope.selectedFile.fileName, host: $scope.host});
         };
 
         $scope.cancel = function () {
@@ -196,30 +163,51 @@ app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', 
         };
     }]);
 
-app.controller('uploadFileController', function ($scope, $modalInstance) {
+app.controller('uploadFileController', ['$scope', '$modalInstance', 'GCViewerDB', function ($scope, $modalInstance, $db) {
 
-    $scope.errors = [];
-    $scope.successes = [];
-    //$scope.$apply();
-
-    validate = function (name, item, arr) {
-        if (item === undefined || item === null) {
-            arr.push(name + " is invalid.");
-        }
-    };
-
-    $scope.ok = function () {
         $scope.errors = [];
-        validate("File", $scope.file, $scope.errors);
-        validate("Server", $scope.host, $scope.errors);
-        if ($scope.errors.length > 0) {
-            return;
-        } else {
-            $modalInstance.close({file: $scope.file, host: $scope.host, date: $scope.date});
-        }
-    };
+        $scope.successes = [];
+        $scope.$apply();
 
-    $scope.cancel = function () {
-        $modalInstance.dismiss('cancel');
-    };
-});
+        var validate = function (name, item, arr) {
+            if (item === undefined || item === null) {
+                arr.push(name + " is invalid.");
+            }
+        };
+
+        $scope.getOptions = function (callback) {
+            $db.getHosts(function (data) {
+                var search = [];
+                data.forEach(function (value) {
+                    search.push(value.host);
+                });
+                search.sort();
+                search = _.unique(search, true);
+                callback({
+                    minLength: 1,
+                    source: search,
+                    delay: 200,
+                    appendTo: document.getElementById("host").parentElement,
+                    position: {my: "left top", at: "left bottom"}
+                });
+            },
+                    function (e) {
+                        console.log(e);
+                    });
+        };
+
+        $scope.ok = function () {
+            $scope.errors = [];
+            validate("File", $scope.file, $scope.errors);
+            validate("Server", $scope.host, $scope.errors);
+            if ($scope.errors.length > 0) {
+                return;
+            } else {
+                $modalInstance.close({file: $scope.file, host: $scope.host, date: $scope.date});
+            }
+        };
+
+        $scope.cancel = function () {
+            $modalInstance.dismiss('cancel');
+        };
+    }]);

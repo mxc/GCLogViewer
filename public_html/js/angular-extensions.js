@@ -38,3 +38,15 @@ app.directive("gcModelDate", function () {
         }
     };
 });
+
+app.directive('gcAutocomplete', function () {
+    return {
+        restrict: 'A',
+        require: '?ngModel',
+        link: function (scope, element, attrs, controller) {
+            scope.getOptions(function (opts) {
+                element.autocomplete(opts);
+            });
+        }
+    };
+});

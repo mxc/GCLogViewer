@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 app.directive("bootstrapnavbar", ["$window", function ($window) {
         return {
             retrict: 'E',

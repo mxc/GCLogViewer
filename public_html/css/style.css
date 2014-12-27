@@ -17,6 +17,9 @@ limitations under the License.
     Created on : 23 Nov 2014, 10:30:12 PM
     Author     : mark
 */
+.chart-table-container {
+  position: relative; }
+
 .labels > ul {
   width: 150px;
   border: 1px solid black;
@@ -45,23 +48,35 @@ limitations under the License.
   display: table;
   margin: auto;
   border-spacing: 20px;
-  width: 90%; }
+  width: 90%;
+  border-spacing: 10px; }
 
 .chart-table {
   display: table;
   width: 100%;
-  margin-top: 20px; }
+  margin-top: 20px;
+  border-spacing: 20px;
+  margin-left: -10px; }
 
 .chart-row {
   display: table-row;
-  width: 100%; }
+  width: 95%;
+  padding: 0px;
+  margin: 0px; }
 
 .chart {
   border: gray outset 1px;
   border-radius: 20px;
   box-shadow: 10px 10px 5px 5px black;
-  margin: auto;
-  display: table-cell; }
+  display: table-cell;
+  border-spacing: 20px;
+  background: #6342a5;
+  background: -moz-linear-gradient(90deg, #6342a5 20%, #6068d6 80%);
+  background: -webkit-linear-gradient(90deg, #6342a5 20%, #6068d6 80%);
+  background: -o-linear-gradient(90deg, #6342a5 20%, #6068d6 80%);
+  background: -ms-linear-gradient(90deg, #6342a5 20%, #6068d6 80%);
+  background: linear-gradient(180deg, #6342a5 20%, #6068d6 80%);
+  padding-left: 20px; }
   .chart a {
     padding-right: 10px;
     padding-top: 5px; }
@@ -70,13 +85,17 @@ limitations under the License.
   transform: scale(1.5); }
 
 .legend {
-  width: 190px;
+  width: 100%;
   font-weight: bold; }
   .legend ul {
     list-style: none; }
     .legend ul li {
-      padding-left: 10px;
-      display: inline; }
+      padding-left: 5px;
+      padding-right: 5px;
+      display: inline;
+      border-radius: 3px;
+      margin-right: 5px;
+      font-size: 10px; }
 
 .highlight {
   background-color: green;
@@ -99,3 +118,30 @@ limitations under the License.
 
 .dummy {
   display: table-cell; }
+
+#footer {
+  width: 100%;
+  background-color: #222;
+  text-align: center;
+  vertical-align: central;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 0px;
+  margin-top: 20px; }
+
+.blurb {
+  margin-left: 5%;
+  margin-right: 5%; }
+
+.how-to, .issues {
+  border: 1px solid silver;
+  padding: 10px;
+  border-radius: 5px; }
+
+.how-to {
+  float: left;
+  width: 55%; }
+
+.issues {
+  width: 40%;
+  float: right; }

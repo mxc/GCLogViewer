@@ -395,7 +395,36 @@ app.factory('db', function () {
         return request;
     };
 
-    DataStore.prototype.findAll = function (objectStore, index, key, onsuccessfunc, onerrorfunc) {
+    DataStore.prototype.findAll = function (objectStore, index, onsuccessfunc, onerrorfunc) {
+        objectStore = this.dbCon.convertToObjectStore(objectStore);
+        index = objectStore.index(index);
+        var array = [];
+        var request = index.openCursor();
+        request.onsuccess = function (event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                array.push(cursor.value);
+                cursor.continue();
+            } else {
+                if (onsuccessfunc) {
+                    onsuccessfunc(array);
+                } else {
+                    console.log(array.length + " entries found for key " + key);
+                };
+            }
+        };
+        if (onerrorfunc) {
+            request.onerror = onerrorfunc;
+        } else {
+            request.onerror = function (e) {
+                console.log(e.message);
+            };        
+        }
+        return request;
+    };
+
+
+    DataStore.prototype.findAllByMatch = function (objectStore, index, key, onsuccessfunc, onerrorfunc) {
         objectStore = this.dbCon.convertToObjectStore(objectStore);
         var keys = IDBKeyRange.only(key);
         index = objectStore.index(index);
@@ -411,7 +440,8 @@ app.factory('db', function () {
                     onsuccessfunc(array);
                 } else {
                     console.log(array.length + " entries found for key " + key);
-                };
+                }
+                ;
             }
         };
         if (onerrorfunc) {

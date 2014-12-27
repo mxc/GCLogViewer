@@ -18,6 +18,9 @@ limitations under the License.
     Author     : mark
 */
 
+.chart-table-container{
+    position:relative;    
+}
 
 .labels>ul{
     width:150px;
@@ -29,10 +32,6 @@ limitations under the License.
 
 .nav, .pagination, .carousel, .panel-title a { 
     cursor: pointer; 
-}
-
-body{
-
 }
 
 .modal-form {
@@ -61,25 +60,39 @@ body{
     margin:auto;    
     border-spacing: 20px;
     width:90%;
+    border-spacing: 10px;
 }
 
 .chart-table{
-   display: table;
-   width:100%;
-   margin-top:20px;
+    display: table;
+    width:100%;
+    margin-top:20px;
+    border-spacing:20px;
+    margin-left:-10px;
 }
 
 .chart-row {
     display: table-row;
-    width:100%;
+    width:95%;
+    padding:0px;
+    margin:0px;
 }
 
 .chart {
     border: gray outset 1px;
     border-radius: 20px;
     box-shadow: 10px 10px 5px 5px black;
-    margin:auto;
     display: table-cell;
+    border-spacing:20px;
+    background: rgb(99, 66, 165);
+    background: -moz-linear-gradient(90deg, rgb(99, 66, 165) 20%, rgb(96, 104, 214) 80%);
+    background: -webkit-linear-gradient(90deg, rgb(99, 66, 165) 20%, rgb(96, 104, 214) 80%);
+    background: -o-linear-gradient(90deg, rgb(99, 66, 165) 20%, rgb(96, 104, 214) 80%);
+    background: -ms-linear-gradient(90deg, rgb(99, 66, 165) 20%, rgb(96, 104, 214) 80%);
+    background: linear-gradient(180deg, rgb(99, 66, 165) 20%, rgb(96, 104, 214) 80%);
+
+
+    padding-left:20px;
     a {
         padding-right:10px;
         padding-top:5px;
@@ -91,13 +104,17 @@ body{
 }
 
 .legend {
-    width:190px;
+    width:100%;
     font-weight: bold;
     ul {
         list-style: none;
         li {
-            padding-left:10px;
+            padding-left:5px;
+            padding-right:5px;
             display: inline;
+            border-radius: 3px;
+            margin-right:5px;
+            font-size:10px;
         }
     }
 }
@@ -132,3 +149,36 @@ body{
 .dummy{
     display: table-cell;
 }
+
+#footer{
+    width:100%;
+    background-color:#222;
+    text-align: center;
+    vertical-align: central;
+    border-radius: 10px;
+    padding:10px;
+    margin-bottom: 0px;
+    margin-top:20px;
+}
+
+.blurb{
+    margin-left:5%;
+    margin-right:5%;
+}
+
+.how-to, .issues {
+    border: 1px solid silver;
+    padding:10px;
+    border-radius: 5px;
+}
+
+.how-to{
+    float:left;
+    width:55%;
+}
+
+.issues{
+    width:40%;
+    float:right;
+}
+
