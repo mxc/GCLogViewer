@@ -68,14 +68,14 @@ limitations under the License.
     width:100%;
     margin-top:20px;
     border-spacing:20px;
-    margin-left:-10px;
+    margin-left:-40px;
+    padding:0px;
 }
 
 .chart-row {
     display: table-row;
     width:95%;
     padding:0px;
-    margin:0px;
 }
 
 .chart {
@@ -143,7 +143,7 @@ limitations under the License.
 }
 
 .nomove {
-    position:relative;
+    /*position:relative;*/
 }
 
 .dummy{
@@ -162,23 +162,25 @@ limitations under the License.
 }
 
 .blurb{
-    margin-left:5%;
-    margin-right:5%;
+    margin-left:2%;
+    margin-right:2%;
 }
 
 .how-to, .issues {
     border: 1px solid silver;
-    padding:10px;
     border-radius: 5px;
+    margin:-10px;
+    padding:5px;
 }
 
-.how-to{
-    float:left;
-    width:55%;
+
+.messages{
+    width:450px; 
+    text-align:center;
+    margin:auto;
 }
 
-.issues{
-    width:40%;
-    float:right;
+.col-centered{
+    float: none;
+    margin: 0 auto;
 }
-

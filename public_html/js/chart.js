@@ -139,7 +139,7 @@ app.factory('Charts', function () {
             tickx.setAttribute("stroke-width", this.labelStrokeWidth);
             //create xtick label
             var tickTextX = document.createElementNS(this.svgns, "text");
-            var text = document.createTextNode(this.formatNumber(((interval * i) / 1000).toFixed(3)));
+            var text = document.createTextNode(this.formatNumber(((interval * i) / 60).toFixed(3)));
             tickTextX.appendChild(text);
             tickTextX.setAttribute("x", (spacing * i) + this.offset);
             tickTextX.setAttribute("y", this.chartHeight + this.offset+15);
@@ -163,7 +163,7 @@ app.factory('Charts', function () {
             g.appendChild(ticky);
             //create y tick mark label
             var tickTextY = document.createElementNS(this.svgns, "text");
-            var text = document.createTextNode(this.formatNumber(((interval * i)/1000).toFixed(2)));
+            var text = document.createTextNode(this.formatNumber(((interval * i)/1024).toFixed(2)));
             tickTextY.appendChild(text);
             tickTextY.setAttribute("x",0);
             tickTextY.setAttribute("style", "font-size:8pt;");

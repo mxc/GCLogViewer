@@ -27,12 +27,12 @@ app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
                 youngGenUsedPrior, youngGenUsedAfter, totalYoungGen,
                 totalUsedPrior, totalUsedAfter, totalHeap, time, fileKey) {
             this.timeStamp = parseFloat(timeStamp);
-            if (dateStamp !== null || dateStamp!==undefined) {
+            if (dateStamp !== null || dateStamp !== undefined) {
                 this.dateStamp = Date.parse(dateStamp);
             }
-            this.youngGenUsedPrior = youngGenUsedPrior===undefined?undefined:parseInt(youngGenUsedPrior);
-            this.youngGenUsedAfter = youngGenUsedAfter===undefined?undefined:parseInt(youngGenUsedAfter);
-            this.totalYoungGen = totalYoungGen===undefined?undefined:parseInt(totalYoungGen);
+            this.youngGenUsedPrior = youngGenUsedPrior === undefined ? undefined : parseInt(youngGenUsedPrior);
+            this.youngGenUsedAfter = youngGenUsedAfter === undefined ? undefined : parseInt(youngGenUsedAfter);
+            this.totalYoungGen = totalYoungGen === undefined ? undefined : parseInt(totalYoungGen);
             this.totalUsedPrior = parseInt(totalUsedPrior);
             this.totalUsedAfter = parseInt(totalUsedAfter);
             this.totalHeap = parseInt(totalHeap);
@@ -46,7 +46,7 @@ app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
         };
 
         //Refactor Me
-        var parseLogEntry = function (line, filekey, nogcDetails) {
+        var parseLogEntry = function (line, filekey, nogcDetails,previousData) {
             var regex;
             var data;
             //log files without gcDetails enabled
@@ -72,6 +72,15 @@ app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
 
             } else {
                 //log files with gcDetails
+                //special processing for Serial collector on Full GCs
+                //It only shows the tenured generation so we need to work out
+                //the young collection measures.
+                var serialGCFull = false;
+                
+                if (line.search(/\[Full GC.* \[Tenured/)!==-1) {
+                    serialGCFull = true;
+                }
+                
                 regex = /(?:(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d*)(?:\+\d*:\s))?(\d+\.\d+):\s)?\[.*?\[.*?(\d+)K->(\d+)K\((\d+)K\)(?:.*,\s\d*\.\d* secs)?\](?: \[.*\])?(?:\s(\d+)K->(\d+)K\((\d+)K\))(?:.*,\s(\d*\.\d*) secs\])?/;
                 var matches = line.match(regex);
                 if (!matches) {
@@ -80,9 +89,19 @@ app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
                 //console.log(matches);
                 var dateStamp = matches[1];
                 var timeStamp = matches[2];
-                var youngGenUsedPrior = matches[3];
-                var youngGenUsedAfter = matches[4];
-                var totalYoungGen = matches[5];
+                var youngGenUsedPrior;
+                var youngGenUsedAfter;
+                var totalYoungGen;
+                
+                if (serialGCFull) {
+                    youngGenUsedPrior = matches[6]-matches[3];
+                    youngGenUsedAfter = matches[7]-matches[4];
+                    totalYoungGen = matches[8]-matches[5];
+                }else{
+                    youngGenUsedPrior = matches[3];
+                    youngGenUsedAfter = matches[4];
+                    totalYoungGen = matches[5];                   
+                }
                 //var youngTime = matches[6];
                 var totalUsedPrior = matches[6];
                 var totalUsedAfter = matches[7];
@@ -111,7 +130,8 @@ app.factory("GCEvent", ['$q', 'GCViewerDB', function ($q, db) {
                 };
             });
             return deferred.promise;
-        };
+        }
+        ;
 
         return {
             parseLogEntry: parseLogEntry,

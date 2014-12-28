@@ -24,7 +24,6 @@ app.controller("GCLogViewerController", ['$scope', '$window', '$q', 'GCViewerDB'
         $scope.successes = [];
         $scope.errors = [];
         Charts.setFooter();
-        IndexedDB = {};
 
         //var wrapper = document.getElementById("wrapper");
         //wrapper.setAttribute("style", "min-height:" + (window.innerHeight - 65) + "px;");
@@ -53,12 +52,17 @@ app.controller("GCLogViewerController", ['$scope', '$window', '$q', 'GCViewerDB'
         };
 
         $scope.processFile = function (filedata) {
-            this.openDB(filedata).then(File.getFile).then(File.loadFile, function (error) {
-                $scope.errors.push("The file has already been uploaded");
-            }).then(GCEvent.saveGCEntries).then(function (msg) {
-                $scope.successes.push(msg);
-            }, function (e) {
-                $scope.errors.push(e);
+            document.body.style.cursor = "wait";
+            this.createDataStore().then(function () {
+                $scope.openDB(filedata).then(File.getFile).then(File.loadFile, function (error) {
+                    $scope.errors.push("The file has already been uploaded");
+                }).then(GCEvent.saveGCEntries).then(function (msg) {
+                    $scope.successes.push(msg);
+                    document.body.style.cursor = "";
+                }, function (e) {
+                    $scope.errors.push(e);
+                    document.body.style.cursor = "";
+                });
             });
         };
 
@@ -94,9 +98,22 @@ app.controller("GCLogViewerController", ['$scope', '$window', '$q', 'GCViewerDB'
             db.dropDataStore();
         };
         $scope.createDataStore = function () {
-            if (db.getStatus() === "closed") {
-                db.createDataStore();
+            var deferred = $q.defer();
+            try {
+                if (db.getStatus() === "closed") {
+                    db.createDataStore(deferred.resolve("creating datastore"));
+                } else {
+                    deferred.resolve("datastore exists");
+                }
+            } catch (e) {
+                    //can happen that the datastore has been dropped and
+                    //therefore an error is thrown as the status is "closing".
+                    //back off and then create the db.
+                   document.window.setTimeout(100,function(){
+                       db.createDataStore(deferred.resolve("creating datastore"));
+                   });
             }
+            return deferred.promise;
         };
         $scope.openUploadDialog = function () {
             this.active = "showFileUploadForm";
@@ -116,7 +133,8 @@ app.controller("GCLogViewerController", ['$scope', '$window', '$q', 'GCViewerDB'
             _.each(elms, function (value) {
                 value.setAttribute("style", "");
             });
-        };
+        }
+        ;
     }]);
 
 app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', function ($scope, $modalInstance, db) {
@@ -163,7 +181,7 @@ app.controller('addGraphController', ['$scope', '$modalInstance', 'GCViewerDB', 
         };
     }]);
 
-app.controller('uploadFileController', ['$scope', '$modalInstance', 'GCViewerDB', function ($scope, $modalInstance, $db) {
+app.controller('uploadFileController', ['$scope', '$modalInstance', 'GCViewerDB', '$q', function ($scope, $modalInstance, $db, $q) {
 
         $scope.errors = [];
         $scope.successes = [];
@@ -175,25 +193,39 @@ app.controller('uploadFileController', ['$scope', '$modalInstance', 'GCViewerDB'
             }
         };
 
+        $scope.openDB = function (filedata) {
+            var deferred = $q.defer();
+            if ($db.getStatus() === "closed") {
+                $db.createDataStore(function () {
+                    deferred.resolve(filedata);
+                });
+            } else {
+                deferred.resolve(filedata);
+            }
+            return deferred.promise;
+        };
+
         $scope.getOptions = function (callback) {
-            $db.getHosts(function (data) {
-                var search = [];
-                data.forEach(function (value) {
-                    search.push(value.host);
-                });
-                search.sort();
-                search = _.unique(search, true);
-                callback({
-                    minLength: 1,
-                    source: search,
-                    delay: 200,
-                    appendTo: document.getElementById("host").parentElement,
-                    position: {my: "left top", at: "left bottom"}
-                });
-            },
-                    function (e) {
-                        console.log(e);
+            $scope.openDB().then(function () {
+                $db.getHosts(function (data) {
+                    var search = [];
+                    data.forEach(function (value) {
+                        search.push(value.host);
                     });
+                    search.sort();
+                    search = _.unique(search, true);
+                    callback({
+                        minLength: 1,
+                        source: search,
+                        delay: 200,
+                        appendTo: document.getElementById("host").parentElement,
+                        position: {my: "left top", at: "left bottom"}
+                    });
+                },
+                        function (e) {
+                            console.log(e);
+                        });
+            });
         };
 
         $scope.ok = function () {
@@ -209,5 +241,6 @@ app.controller('uploadFileController', ['$scope', '$modalInstance', 'GCViewerDB'
 
         $scope.cancel = function () {
             $modalInstance.dismiss('cancel');
-        };
+        }
+        ;
     }]);

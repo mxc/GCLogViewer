@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                 files: [{
                         expand: true,
                         cwd: '<%= app %>/',
-                        src: ['images/**', 'fonts/**', '**/*.html', '!**/*.scss', '!bower_components/**'],
+                        src: ['images/**', 'fonts/**', '**/*.html', '!**/*.scss', '!bower_components/**','samplegc.log','js/worker.js'],
                         dest: '<%= dist %>/'
                     }]
             },
@@ -135,6 +135,6 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['compile-sass', 'bower-install', 'connect:app', 'watch']);
     grunt.registerTask('validate-js', ['jshint']);
     grunt.registerTask('server-dist', ['connect:dist']);
-    grunt.registerTask('publish', ['compile-sass', 'clean:dist', 'validate-js', 'useminPrepare', 'copy:dist', 'concat', 'cssmin', 'uglify', 'usemin']);
+    grunt.registerTask('publish', ['compile-sass', 'clean:dist', 'useminPrepare', 'copy:dist', 'concat', 'cssmin', 'uglify', 'usemin']);
 
 };

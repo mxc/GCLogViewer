@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
+
+//exported for test purposes
+var getChartObjects;
+
 (function () {
     self.addEventListener('message', function (e) {
         var array = e.data;
-        getChartObject(array);
+        var propBag = getChartObjects(array);
+        self.postMessage(propBag);
     });
-    function getChartObject(array) {
+    
+    getChartObjects = function (array) {
         var propBag = {
             miny: 99999999,
             maxy: 0,
@@ -54,29 +61,39 @@
                 propBag.series[1].data.push({x: 0, y: value.totalYoungGen === undefined ? 0 : value.totalYoungGen});
                 propBag.series[1].data.push({x: value.timeStamp - 1, y: value.totalYoungGen === undefined ? 0 : value.totalYoungGen});
                 propBag.series[2].data.push({x: 0, y: 0});
-                propBag.series[2].data.push({x: value.timeStamp - 1, y: 0});
+                propBag.series[2].data.push({x: value.timeStamp - 1, y: calcOldGenUsedPrior(value)});
                 propBag.series[3].data.push({x: 0, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
                 propBag.series[3].data.push({x: value.timeStamp - 1, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
             } else {
                 propBag.series[0].data.push({x: value.timeStamp - 1, y: value.youngGenUsedPrior === undefined ? 0 : value.youngGenUsedPrior});
                 propBag.series[1].data.push({x: value.timeStamp - 1, y: array[index - 1].totalYoungGen === undefined ? 0 : array[index - 1].totalYoungGen});
-                propBag.series[2].data.push({x: value.timeStamp - 1, y: calcOldGenUsed(array[index - 1])});
+                //propBag.series[2].data.push({x: value.timeStamp - 1, y: calcOldGenUsedAfter(array[index - 1])});
+                propBag.series[2].data.push({x: value.timeStamp - 1, y: calcOldGenUsedPrior(value)});
                 propBag.series[3].data.push({x: value.timeStamp - 1, y: array[index - 1].totalHeap});
             }
             propBag.series[0].data.push({x: value.timeStamp, y: value.youngGenUsedAfter === undefined ? 0 : value.youngGenUsedAfter});
             propBag.series[1].data.push({x: value.timeStamp, y: value.totalYoungGen === undefined ? 0 : value.totalYoungGen});
-            propBag.series[2].data.push({x: value.timeStamp, y: calcOldGenUsed(value)});
+            propBag.series[2].data.push({x: value.timeStamp, y: calcOldGenUsedAfter(value)});
             propBag.series[3].data.push({x: value.timeStamp, y: isNaN(value.totalHeap) ? 0 : value.totalHeap});
             propBag.miny = value.totalHeap < propBag.miny ? value.totalHeap : propBag.miny;
             propBag.maxy = value.totalHeap > propBag.maxy ? value.totalHeap : propBag.maxy;
             propBag.minx = value.timeStamp < propBag.minx ? value.timeStamp : propBag.minx;
             propBag.maxx = value.timeStamp > propBag.maxx ? value.timeStamp : propBag.maxx;
         });
-        self.postMessage(propBag);
+        return propBag;
+    };
+
+    function  calcOldGenUsedPrior(value){
+        var tmpValueYGP = value.youngGenUsedPrior === undefined ? 0 : value.youngGenUsedPrior;
+        var tmpValueYGT = value.totalYoungGen === undefined ? 0 : value.totalYoungGen;
+
+        var result = value.totalUsedPrior - tmpValueYGP + tmpValueYGT;
+        //console.log(result);
+        return isNaN(result) ? 0 : result;
     }
 
 
-    function calcOldGenUsed(value) {
+    function calcOldGenUsedAfter(value) {
         var tmpValueYGA = value.youngGenUsedAfter === undefined ? 0 : value.youngGenUsedAfter;
         var tmpValueYGT = value.totalYoungGen === undefined ? 0 : value.totalYoungGen;
 
