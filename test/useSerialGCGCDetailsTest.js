@@ -21,7 +21,7 @@ describe("GCLogViewer Log File Parsing:", function () {
     var $rootScope;
     var loadFileResult;
 
-    //Note Full GC lines (last 2 lines) represent out of memory condition
+ 
     var gcDetailsParNewParOld = 'Java HotSpot(TM) 64-Bit Server VM (25.25-b02) for linux-amd64 JRE (1.8.0_25-b17), built on Sep 17 2014 17:32:11 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8) \n' +
             'Memory: 4k page, physical 8139328k(1596156k free), swap 0k(0k free) \n' +
             'CommandLine flags: -XX:InitialHeapSize=130229248 -XX:+ManagementServer -XX:MaxHeapSize=2083667968 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC \n' +
@@ -142,33 +142,45 @@ describe("GCLogViewer Log File Parsing:", function () {
                     expect(loadFileResult.objs[2].time).toBe(0.0135358);
                     expect(loadFileResult.objs[2].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
 
+
+                    //forth entry
+                    expect(loadFileResult.objs[3].timeStamp).toBe(62.561);
+                    expect(loadFileResult.objs[3].dateStamp).toBe(Date.parse('2014-12-27T17:31:47.432'));
+                    expect(loadFileResult.objs[3].youngGenUsedPrior).toBe(38099);
+                    expect(loadFileResult.objs[3].youngGenUsedAfter).toBe(4096);
+                    expect(loadFileResult.objs[3].totalYoungGen).toBe(38720);
+                    expect(loadFileResult.objs[3].totalUsedPrior).toBe(109205);
+                    expect(loadFileResult.objs[3].totalUsedAfter).toBe(107970);
+                    expect(loadFileResult.objs[3].totalHeap).toBe(143204);
+                    expect(loadFileResult.objs[3].time).toBe(0.0341651);
+                    expect(loadFileResult.objs[3].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
+
+                    //fith entry (full)
+                    expect(loadFileResult.objs[4].timeStamp).toBe(302.749);
+                    expect(loadFileResult.objs[4].dateStamp).toBe(Date.parse('2014-12-27T17:35:47.621'));
+                    expect(loadFileResult.objs[4].youngGenUsedPrior).toBe(605456);
+                    expect(loadFileResult.objs[4].youngGenUsedAfter).toBe(605456);
+                    expect(loadFileResult.objs[4].totalYoungGen).toBe(610688);
+                    expect(loadFileResult.objs[4].totalUsedPrior).toBe(1837863);
+                    expect(loadFileResult.objs[4].totalUsedAfter).toBe(1455641);
+                    expect(loadFileResult.objs[4].totalHeap).toBe(1967872);
+                    expect(loadFileResult.objs[4].time).toBe(0.2639604);
+                    expect(loadFileResult.objs[4].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
+
                 });
 
         it('verify conversion of full gc entry to gcEvent object', function () {
-
-            //forth entry
-            expect(loadFileResult.objs[3].timeStamp).toBe(62.561);
-            expect(loadFileResult.objs[3].dateStamp).toBe(Date.parse('2014-12-27T17:31:47.432'));
-            expect(loadFileResult.objs[3].youngGenUsedPrior).toBe(38099);
-            expect(loadFileResult.objs[3].youngGenUsedAfter).toBe(4096);
-            expect(loadFileResult.objs[3].totalYoungGen).toBe(38720);
-            expect(loadFileResult.objs[3].totalUsedPrior).toBe(109205);
-            expect(loadFileResult.objs[3].totalUsedAfter).toBe(107970);
-            expect(loadFileResult.objs[3].totalHeap).toBe(143204);
-            expect(loadFileResult.objs[3].time).toBe(0.0341651);
-            expect(loadFileResult.objs[3].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
-
-            //fith entry (full)
-            expect(loadFileResult.objs[4].timeStamp).toBe(302.749);
-            expect(loadFileResult.objs[4].dateStamp).toBe(Date.parse('2014-12-27T17:35:47.621'));
-            expect(loadFileResult.objs[4].youngGenUsedPrior).toBe(605456);
-            expect(loadFileResult.objs[4].youngGenUsedAfter).toBe(605456);
-            expect(loadFileResult.objs[4].totalYoungGen).toBe(610688);
-            expect(loadFileResult.objs[4].totalUsedPrior).toBe(1837863);
-            expect(loadFileResult.objs[4].totalUsedAfter).toBe(1455641);
-            expect(loadFileResult.objs[4].totalHeap).toBe(1967872);
-            expect(loadFileResult.objs[4].time).toBe(0.2639604);
-            expect(loadFileResult.objs[4].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
+                    //fith entry (full)
+                    expect(loadFileResult.objs[5].timeStamp).toBe(325.219);
+                    expect(loadFileResult.objs[5].dateStamp).toBe(Date.parse('2014-12-27T17:36:10.090'));
+                    expect(loadFileResult.objs[5].youngGenUsedPrior).toBe(1958589-1354260);
+                    expect(loadFileResult.objs[5].youngGenUsedAfter).toBe(1947123-1354217);
+                    expect(loadFileResult.objs[5].totalYoungGen).toBe(1967872-1357184);
+                    expect(loadFileResult.objs[5].totalUsedPrior).toBe(1958589);
+                    expect(loadFileResult.objs[5].totalUsedAfter).toBe(1947123);
+                    expect(loadFileResult.objs[5].totalHeap).toBe(1967872);
+                    expect(loadFileResult.objs[5].time).toBe(0.3930093);
+                    expect(loadFileResult.objs[5].fileKey).toBe("ed72fc0db3ad36ff1abcb2ef0ee08ae8");
         });
 
     });

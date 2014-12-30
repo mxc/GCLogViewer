@@ -5,3 +5,4 @@ public_html/bower_components/
 /dist/
 /node_modules/
 .tmp
+js/google.js
